@@ -19,17 +19,25 @@ import {
   type ColumnDef,
   type ColumnFiltersState,
   type ColumnSizingState,
+  type OnChangeFn,
   type SortingState,
+  type Updater,
   type VisibilityState,
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, DatabaseZap, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type { CellRegistry, EditableColumnMeta, EditingState } from "@/@types";
+import type {
+  CellRegistry,
+  EditableColumnMeta,
+  EditingState,
+  FilterRegistry,
+} from "@/@types";
 
 import { defaultCellRegistry } from "./cells";
 import DataTableSkeleton from "./data-table-skeleton";
 import { DataTableFilter } from "./data-table-filter";
+import { defaultFilterRegistry } from "./filters";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { formatViewValue } from "./view-formatters";
 
@@ -62,12 +70,15 @@ interface DataTableProps<TData, TValue> {
   getRowId?: (row: TData, index: number) => string;
   editMode?: "row" | "cell" | "both" | "none";
   cellRegistry?: CellRegistry;
+  filterRegistry?: FilterRegistry;
   enableSorting?: boolean;
   enableMultiSort?: boolean;
   enableFiltering?: boolean;
   enableResizing?: boolean;
   pageSize?: number;
   pageSizeOptions?: number[];
+  columnFilters?: ColumnFiltersState;
+  onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
   onEdit?: (rowId: string, row: TData) => void;
   onSave?: (rowId: string, updated: TData) => void;
   onCancel?: (rowId: string) => void;
@@ -133,19 +144,37 @@ function DataTableComponent<TData, TValue>({
   getRowId,
   editMode = "none",
   cellRegistry,
+  filterRegistry,
   enableSorting = true,
   enableMultiSort = true,
   enableFiltering = true,
   enableResizing = true,
   pageSize = 10,
   pageSizeOptions,
+  columnFilters: controlledColumnFilters,
+  onColumnFiltersChange: controlledOnColumnFiltersChange,
   onEdit,
   onSave,
   onCancel,
   onDelete,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>(initialSorting || []);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [internalColumnFilters, setInternalColumnFilters] =
+    useState<ColumnFiltersState>([]);
+  const isFiltersControlled = controlledColumnFilters !== undefined;
+  const columnFilters = isFiltersControlled
+    ? controlledColumnFilters
+    : internalColumnFilters;
+  const setColumnFilters: OnChangeFn<ColumnFiltersState> = useCallback(
+    (updater: Updater<ColumnFiltersState>) => {
+      if (isFiltersControlled) {
+        controlledOnColumnFiltersChange?.(updater);
+      } else {
+        setInternalColumnFilters(updater);
+      }
+    },
+    [isFiltersControlled, controlledOnColumnFiltersChange],
+  );
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     () => getColumnVisibilityFromDefs(columns),
   );
@@ -159,13 +188,14 @@ function DataTableComponent<TData, TValue>({
   const pathname = usePathname();
 
   useEffect(() => {
+    if (isFiltersControlled) return;
     const filters: ColumnFiltersState = [];
     searchParams.forEach((value, key) => {
       if (clientSideFilters.includes(key as keyof TData)) {
         filters.push({ id: key, value });
       }
     });
-    setColumnFilters((prev) => {
+    setInternalColumnFilters((prev) => {
       const urlKeys = new Set(filters.map((f) => f.id));
       const preserved = prev.filter(
         (f) =>
@@ -174,7 +204,7 @@ function DataTableComponent<TData, TValue>({
       const urlFilteredOut = preserved.filter((f) => !urlKeys.has(f.id));
       return [...urlFilteredOut, ...filters];
     });
-  }, [searchParams, clientSideFilters]);
+  }, [searchParams, clientSideFilters, isFiltersControlled]);
 
   const table = useReactTable({
     data,
@@ -214,6 +244,11 @@ function DataTableComponent<TData, TValue>({
   const registry = useMemo<CellRegistry>(
     () => ({ ...defaultCellRegistry, ...(cellRegistry ?? {}) }),
     [cellRegistry],
+  );
+
+  const filterRenderers = useMemo<FilterRegistry>(
+    () => ({ ...defaultFilterRegistry, ...(filterRegistry ?? {}) }),
+    [filterRegistry],
   );
 
   const handleClearFilters = useCallback(() => {
@@ -452,7 +487,7 @@ function DataTableComponent<TData, TValue>({
       >
         <table
           className="relative grid caption-bottom text-sm"
-          style={{ width: totalSize }}
+          style={{ minWidth: totalSize, width: "100%" }}
         >
           <thead className="bg-data-table-header sticky top-0 z-20 grid">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -469,6 +504,8 @@ function DataTableComponent<TData, TValue>({
                   const canSort = enableSorting && header.column.getCanSort();
                   const canResize =
                     enableResizing && header.column.getCanResize();
+                  const customHeader =
+                    typeof header.column.columnDef.header === "function";
 
                   return (
                     <th
@@ -481,6 +518,8 @@ function DataTableComponent<TData, TValue>({
                       )}
                       style={{
                         width: header.getSize(),
+                        flexGrow: header.getSize(),
+                        flexShrink: 0,
                         paddingLeft: gap,
                         paddingRight: gap,
                       }}
@@ -489,13 +528,13 @@ function DataTableComponent<TData, TValue>({
                       <div
                         className={cn(
                           "flex items-center gap-1",
-                          canSort && "cursor-pointer select-none",
+                          canSort && !customHeader && "cursor-pointer select-none",
                         )}
                         style={getAlignmentStyle(
                           header.column.id as keyof TData,
                         )}
                         onClick={
-                          canSort
+                          canSort && !customHeader
                             ? header.column.getToggleSortingHandler()
                             : undefined
                         }
@@ -506,7 +545,7 @@ function DataTableComponent<TData, TValue>({
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
-                        {canSort && (
+                        {canSort && !customHeader && (
                           <span className="text-muted-foreground">
                             {sortDir === "asc" ? (
                               <ArrowUp className="h-3 w-3" />
@@ -520,7 +559,10 @@ function DataTableComponent<TData, TValue>({
                       </div>
                       {enableFiltering && meta?.filterType && (
                         <div className="mt-1">
-                          <DataTableFilter column={header.column} />
+                          <DataTableFilter
+                            column={header.column}
+                            registry={filterRenderers}
+                          />
                         </div>
                       )}
                       {canResize && (
@@ -544,6 +586,7 @@ function DataTableComponent<TData, TValue>({
                     className="text-muted-foreground inline-flex items-center justify-center text-xs font-medium"
                     style={{
                       width: ACTIONS_COLUMN_WIDTH,
+                      flexShrink: 0,
                       paddingLeft: gap,
                       paddingRight: gap,
                     }}
@@ -608,6 +651,8 @@ function DataTableComponent<TData, TValue>({
                         )}
                         style={{
                           width: cell.column.getSize(),
+                          flexGrow: cell.column.getSize(),
+                          flexShrink: 0,
                           paddingLeft: gap,
                           paddingRight: gap,
                           ...getAlignmentStyle(columnId as keyof TData),
@@ -655,6 +700,7 @@ function DataTableComponent<TData, TValue>({
                       className="inline-flex items-center justify-center p-2"
                       style={{
                         width: ACTIONS_COLUMN_WIDTH,
+                        flexShrink: 0,
                         paddingLeft: gap,
                         paddingRight: gap,
                       }}

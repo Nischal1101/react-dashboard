@@ -2,51 +2,29 @@
 
 import type { Column } from "@tanstack/react-table";
 
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import type { SelectOption } from "@/@types";
+import type { EditableColumnMeta, FilterRegistry } from "@/@types";
+
+import { defaultFilterRegistry } from "./filters";
 
 interface Props<TData> {
   column: Column<TData, unknown>;
+  registry?: FilterRegistry;
 }
 
-export function DataTableFilter<TData>({ column }: Props<TData>) {
-  const meta = column.columnDef.meta;
-  const filterType = meta?.filterType ?? "none";
-  if (filterType === "none") return null;
+export function DataTableFilter<TData>({ column, registry }: Props<TData>) {
+  const meta = column.columnDef.meta as EditableColumnMeta<TData> | undefined;
+  if (!column.getCanFilter() || !meta?.filterType || meta.filterType === "none")
+    return null;
 
-  const value = (column.getFilterValue() ?? "") as string;
-
-  if (filterType === "select") {
-    const options: SelectOption[] =
-      meta?.filterOptions ?? meta?.options ?? [];
-    return (
-      <select
-        className={cn(
-          "border-input bg-background h-7 w-full min-w-0 rounded-md border px-1.5 text-xs outline-none",
-          "focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-2",
-        )}
-        value={value}
-        onClick={(e) => e.stopPropagation()}
-        onChange={(e) => column.setFilterValue(e.target.value || undefined)}
-      >
-        <option value="">All</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    );
-  }
+  const Renderer = (registry ?? defaultFilterRegistry)[meta.filterType];
+  if (!Renderer) return null;
 
   return (
-    <Input
-      className="h-7 w-full text-xs"
-      placeholder="Filter…"
-      value={value}
-      onClick={(e) => e.stopPropagation()}
-      onChange={(e) => column.setFilterValue(e.target.value || undefined)}
+    <Renderer
+      column={column as Column<unknown, unknown>}
+      value={column.getFilterValue()}
+      meta={meta as EditableColumnMeta<unknown, unknown>}
+      onChange={(v) => column.setFilterValue(v)}
     />
   );
 }

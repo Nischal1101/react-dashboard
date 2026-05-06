@@ -1,61 +1,48 @@
 "use client";
 
-import type { EditableColumnDef } from "@/@types";
+import { DataTableHeader } from "@/components/table/data-table-header";
+import type { EditableColumnDef, Product, SelectOption } from "@/@types";
 
-import type { Employee } from "@/@types";
+interface ColumnOptions {
+  categories: SelectOption[];
+  brands: SelectOption[];
+}
 
-const departmentOptions = [
-  { label: "Engineering", value: "engineering" },
-  { label: "Design", value: "design" },
-  { label: "Product", value: "product" },
-  { label: "People", value: "people" },
-];
-
-export const createColumns = (): EditableColumnDef<Employee>[] => [
+export const createColumns = (
+  options: ColumnOptions = { categories: [], brands: [] },
+): EditableColumnDef<Product>[] => [
   {
-    accessorKey: "name",
-    header: "Name",
-    size: 180,
-    meta: {
-      fieldType: "text",
-      required: true,
-      placeholder: "Full name",
-    },
+    accessorKey: "title",
+    header: ({ column }) => <DataTableHeader title="Title" column={column} />,
+    size: 240,
   },
   {
-    accessorKey: "email",
-    header: "Email",
-    size: 220,
+    accessorKey: "category",
+    header: ({ column }) => (
+      <DataTableHeader title="Category" column={column} />
+    ),
+    size: 160,
     meta: {
       fieldType: "text",
-      required: true,
-      placeholder: "name@example.com",
-      validate: (value: unknown) => {
-        if (typeof value !== "string") return null;
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-          ? null
-          : "Enter a valid email address";
-      },
-      normalize: (value: unknown) =>
-        typeof value === "string" ? value.trim().toLowerCase() : value,
-    },
-  },
-  {
-    accessorKey: "department",
-    header: "Department",
-    size: 150,
-    meta: {
-      fieldType: "select",
-      required: true,
-      options: departmentOptions,
       filterType: "select",
-      filterOptions: departmentOptions,
+      filterOptions: options.categories,
     },
   },
   {
-    accessorKey: "salary",
-    header: "Salary",
-    size: 130,
+    accessorKey: "brand",
+    header: ({ column }) => <DataTableHeader title="Brand" column={column} />,
+    size: 160,
+    meta: {
+      fieldType: "text",
+      filterType: "select",
+      filterOptions: options.brands,
+    },
+  },
+  {
+    accessorKey: "price",
+    header: ({ column }) => <DataTableHeader title="Price" column={column} />,
+    enableSorting: true,
+    size: 110,
     meta: {
       fieldType: "currency",
       currency: "USD",
@@ -68,8 +55,11 @@ export const createColumns = (): EditableColumnDef<Employee>[] => [
     },
   },
   {
-    accessorKey: "bonus",
-    header: "Bonus",
+    accessorKey: "discountPercentage",
+    header: ({ column }) => (
+      <DataTableHeader title="Discount" column={column} />
+    ),
+    enableSorting: true,
     size: 110,
     meta: {
       fieldType: "percentage",
@@ -82,43 +72,26 @@ export const createColumns = (): EditableColumnDef<Employee>[] => [
     },
   },
   {
-    accessorKey: "yearsExperience",
-    header: "Years",
-    size: 90,
+    accessorKey: "rating",
+    header: ({ column }) => <DataTableHeader title="Rating" column={column} />,
+    enableSorting: true,
+    size: 100,
     meta: {
       fieldType: "number",
       min: 0,
-      max: 50,
+      max: 5,
+      step: 0.01,
+    },
+  },
+  {
+    accessorKey: "stock",
+    header: ({ column }) => <DataTableHeader title="Stock" column={column} />,
+    enableSorting: true,
+    size: 100,
+    meta: {
+      fieldType: "number",
+      min: 0,
       step: 1,
     },
   },
-  {
-    accessorKey: "startDate",
-    header: "Start Date",
-    size: 140,
-    meta: { fieldType: "date" },
-  },
-  {
-    accessorKey: "phone",
-    header: "Phone",
-    size: 160,
-    meta: {
-      fieldType: "phone",
-      validate: (value: unknown) => {
-        if (value == null || value === "") return null;
-        return typeof value === "string" &&
-          value.replace(/\D/g, "").length === 10
-          ? null
-          : "Must be 10 digits";
-      },
-    },
-  },
-  {
-    accessorKey: "active",
-    header: "Active",
-    size: 80,
-    meta: { fieldType: "checkbox" },
-  },
 ];
-
-export const columns = createColumns();
