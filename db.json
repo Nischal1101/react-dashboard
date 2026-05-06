@@ -1,0 +1,269 @@
+{
+  "products": [
+    {
+      "id": "2",
+      "title": "Samsung Galaxy S24",
+      "description": "Snapdragon 8 Gen 3 with AI-driven photography.",
+      "category": "smartphones",
+      "price": 899,
+      "discountPercentage": 8,
+      "rating": 4.5,
+      "stock": 47,
+      "brand": "Samsung"
+    },
+    {
+      "id": "3",
+      "title": "Google Pixel 8",
+      "description": "Tensor G3 chip with computational camera tricks.",
+      "category": "smartphones",
+      "price": 69,
+      "discountPercentage": 10,
+      "rating": 4.4,
+      "stock": 28,
+      "brand": "Google"
+    },
+    {
+      "id": "4",
+      "title": "OnePlus 12",
+      "description": "Fast-charging flagship with Hasselblad camera tuning.",
+      "category": "smartphones",
+      "price": 749.5,
+      "discountPercentage": 12,
+      "rating": 4.3,
+      "stock": 19,
+      "brand": "OnePlus"
+    },
+    {
+      "id": "5",
+      "title": "MacBook Pro 14",
+      "description": "M3 Pro chip with Liquid Retina XDR display.",
+      "category": "laptops",
+      "price": 1999,
+      "discountPercentage": 4,
+      "rating": 4.8,
+      "stock": 14,
+      "brand": "Apple"
+    },
+    {
+      "id": "6",
+      "title": "Dell XPS 13",
+      "description": "Compact ultrabook with InfinityEdge display.",
+      "category": "laptops",
+      "price": 1299,
+      "discountPercentage": 7.5,
+      "rating": 4.5,
+      "stock": 22,
+      "brand": "Dell"
+    },
+    {
+      "id": "7",
+      "title": "ThinkPad X1 Carbon",
+      "description": "Business-class ultraportable with carbon-fiber chassis.",
+      "category": "laptops",
+      "price": 1599,
+      "discountPercentage": 6,
+      "rating": 4.6,
+      "stock": 11,
+      "brand": "Lenovo"
+    },
+    {
+      "id": "8",
+      "title": "ASUS ROG Zephyrus G14",
+      "description": "Compact gaming laptop with Ryzen 9 and RTX graphics.",
+      "category": "laptops",
+      "price": 1799.99,
+      "discountPercentage": 9,
+      "rating": 4.4,
+      "stock": 8,
+      "brand": "ASUS"
+    },
+    {
+      "id": "9",
+      "title": "Sony WH-1000XM5",
+      "description": "Industry-leading noise-cancelling over-ear headphones.",
+      "category": "audio",
+      "price": 399,
+      "discountPercentage": 11,
+      "rating": 4.7,
+      "stock": 53,
+      "brand": "Sony"
+    },
+    {
+      "id": "10",
+      "title": "Bose QuietComfort Ultra",
+      "description": "Premium ANC headphones with immersive audio.",
+      "category": "audio",
+      "price": 429,
+      "discountPercentage": 5,
+      "rating": 4.5,
+      "stock": 25,
+      "brand": "Bose"
+    },
+    {
+      "id": "11",
+      "title": "AirPods Pro (2nd Gen)",
+      "description": "Adaptive audio with USB-C charging case.",
+      "category": "audio",
+      "price": 249,
+      "discountPercentage": 8,
+      "rating": 4.6,
+      "stock": 64,
+      "brand": "Apple"
+    },
+    {
+      "id": "12",
+      "title": "Sennheiser Momentum 4",
+      "description": "Audiophile wireless headphones with long battery life.",
+      "category": "audio",
+      "price": 379,
+      "discountPercentage": 7,
+      "rating": 4.4,
+      "stock": 17,
+      "brand": "Sennheiser"
+    },
+    {
+      "id": "13",
+      "title": "Chanel No. 5 EDP",
+      "description": "Iconic floral aldehyde fragrance.",
+      "category": "fragrances",
+      "price": 145,
+      "discountPercentage": 3,
+      "rating": 4.6,
+      "stock": 41,
+      "brand": "Chanel"
+    },
+    {
+      "id": "14",
+      "title": "Dior Sauvage EDT",
+      "description": "Fresh, woody men's signature scent.",
+      "category": "fragrances",
+      "price": 110,
+      "discountPercentage": 6.5,
+      "rating": 4.7,
+      "stock": 38,
+      "brand": "Dior"
+    },
+    {
+      "id": "15",
+      "title": "Tom Ford Tobacco Vanille",
+      "description": "Warm, spicy gourmand with rich tobacco notes.",
+      "category": "fragrances",
+      "price": 295,
+      "discountPercentage": 2,
+      "rating": 4.8,
+      "stock": 12,
+      "brand": "Tom Ford"
+    },
+    {
+      "id": "16",
+      "title": "Yves Saint Laurent Libre",
+      "description": "Lavender and orange blossom floral.",
+      "category": "fragrances",
+      "price": 135,
+      "discountPercentage": 9,
+      "rating": 4.5,
+      "stock": 26,
+      "brand": "YSL"
+    },
+    {
+      "id": "17",
+      "title": "CeraVe Moisturizing Cream",
+      "description": "Daily hydration with ceramides and hyaluronic acid.",
+      "category": "skincare",
+      "price": 18.99,
+      "discountPercentage": 5,
+      "rating": 4.6,
+      "stock": 120,
+      "brand": "CeraVe"
+    },
+    {
+      "id": "18",
+      "title": "The Ordinary Niacinamide 10%",
+      "description": "Oil-control serum that minimizes pores.",
+      "category": "skincare",
+      "price": 8.5,
+      "discountPercentage": 0,
+      "rating": 4.4,
+      "stock": 200,
+      "brand": "The Ordinary"
+    },
+    {
+      "id": "19",
+      "title": "La Roche-Posay Anthelios SPF 50",
+      "description": "Broad-spectrum sunscreen for sensitive skin.",
+      "category": "skincare",
+      "price": 35,
+      "discountPercentage": 4,
+      "rating": 4.7,
+      "stock": 75,
+      "brand": "La Roche-Posay"
+    },
+    {
+      "id": "20",
+      "title": "Drunk Elephant T.L.C. Sukari",
+      "description": "AHA/BHA exfoliating night facial.",
+      "category": "skincare",
+      "price": 80,
+      "discountPercentage": 6,
+      "rating": 4.3,
+      "stock": 33,
+      "brand": "Drunk Elephant"
+    },
+    {
+      "id": "21",
+      "title": "Organic Cold-Pressed Olive Oil",
+      "description": "Single-origin extra virgin olive oil, 750ml.",
+      "category": "groceries",
+      "price": 22,
+      "discountPercentage": 5,
+      "rating": 4.5,
+      "stock": 88,
+      "brand": "Bertolli"
+    },
+    {
+      "id": "22",
+      "title": "Single-Origin Coffee Beans",
+      "description": "Ethiopian Yirgacheffe whole-bean, 500g.",
+      "category": "groceries",
+      "price": 24.5,
+      "discountPercentage": 7.5,
+      "rating": 4.7,
+      "stock": 64,
+      "brand": "Blue Bottle"
+    },
+    {
+      "id": "23",
+      "title": "Ceramic Table Lamp",
+      "description": "Mid-century ceramic lamp with linen shade.",
+      "category": "home-decoration",
+      "price": 89,
+      "discountPercentage": 10,
+      "rating": 4.4,
+      "stock": 21,
+      "brand": "West Elm"
+    },
+    {
+      "id": "24",
+      "title": "Wool Throw Blanket",
+      "description": "Hand-loomed merino wool throw, 130x180cm.",
+      "category": "home-decoration",
+      "price": 149,
+      "discountPercentage": 12,
+      "rating": 4.6,
+      "stock": 18,
+      "brand": "Pendleton"
+    },
+    {
+      "id": "25",
+      "title": "Brass Picture Frame Set",
+      "description": "Set of three solid brass photo frames.",
+      "category": "home-decoration",
+      "price": 65,
+      "discountPercentage": 8,
+      "rating": 4.2,
+      "stock": 30,
+      "brand": "CB2"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

@@ -15,11 +15,29 @@ interface ProductListParams {
   skip: number;
 }
 
-export async function fetchProducts(queryParams: ProductListParams) {
-  const response = await api.get<ProductsResponse>("/products/", {
-    params: queryParams,
+interface JsonServerPage<T> {
+  first: number;
+  prev: number | null;
+  next: number | null;
+  last: number;
+  pages: number;
+  items: number;
+  data: T[];
+}
+
+export async function fetchProducts(
+  queryParams: ProductListParams,
+): Promise<ProductsResponse> {
+  const page = Math.floor(queryParams.skip / queryParams.limit) + 1;
+  const response = await api.get<JsonServerPage<Product>>("/products", {
+    params: { _page: page, _per_page: queryParams.limit },
   });
-  return response.data;
+  return {
+    products: response.data.data,
+    total: response.data.items,
+    skip: queryParams.skip,
+    limit: queryParams.limit,
+  };
 }
 
 export function useFetchProducts(queryParams: ProductListParams) {
@@ -36,12 +54,10 @@ export interface ProductFilterOptions {
 }
 
 export async function fetchProductFilterOptions(): Promise<ProductFilterOptions> {
-  const response = await api.get<ProductsResponse>("/products/", {
-    params: { limit: 0, select: "brand,category" },
-  });
+  const response = await api.get<Product[]>("/products");
   const categories = new Set<string>();
   const brands = new Set<string>();
-  for (const product of response.data.products) {
+  for (const product of response.data) {
     if (product.category) categories.add(product.category);
     if (product.brand) brands.add(product.brand);
   }
@@ -55,7 +71,6 @@ export function useFetchProductFilterOptions() {
   return useQuery({
     queryKey: keys.products.filterOptions(),
     queryFn: fetchProductFilterOptions,
-    staleTime: Infinity,
   });
 }
 
@@ -73,11 +88,9 @@ export function useUpdateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateProduct,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: keys.products.byFilter(data.id),
-      });
-      toast.success("Portfolio order deleted successfully");
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: keys.products.list() });
+      toast.success("Product updated");
     },
   });
 }
@@ -86,13 +99,8 @@ interface DeleteProductInput {
   id: number;
 }
 
-interface DeletedProduct extends Product {
-  isDeleted: boolean;
-  deletedOn: string;
-}
-
 export async function deleteProduct({ id }: DeleteProductInput) {
-  const response = await api.delete<DeletedProduct>(`/products/${id}`);
+  const response = await api.delete<Product>(`/products/${id}`);
   return response.data;
 }
 
@@ -101,10 +109,8 @@ export function useDeleteProduct() {
   return useMutation({
     mutationFn: deleteProduct,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: keys.products.list(),
-      });
-      toast.success("Portfolio order deleted successfully");
+      queryClient.invalidateQueries({ queryKey: keys.products.list() });
+      toast.success("Product deleted");
     },
   });
 }
