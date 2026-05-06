@@ -305,17 +305,20 @@ function DataTableComponent<TData, TValue>({
 
   const beginEdit = useCallback(
     (kind: "row" | "cell", rowId: string, row: TData, columnId?: string) => {
-      if (editing && editing.rowId !== rowId) return;
+      const switchingRow = editing != null && editing.rowId !== rowId;
+      if (switchingRow) {
+        onCancel?.(editing.rowId);
+      }
       if (kind === "cell" && columnId) {
         setEditing({ kind: "cell", rowId, columnId });
       } else {
         setEditing({ kind: "row", rowId });
       }
-      setDraft((prev) => prev ?? { ...row });
+      setDraft((prev) => (switchingRow ? { ...row } : (prev ?? { ...row })));
       setErrors({});
       onEdit?.(rowId, row);
     },
-    [editing, onEdit],
+    [editing, onEdit, onCancel],
   );
 
   const handleCancel = useCallback(() => {
@@ -324,6 +327,20 @@ function DataTableComponent<TData, TValue>({
     setDraft(null);
     setErrors({});
   }, [editing, onCancel]);
+
+  useEffect(() => {
+    if (!editing) return;
+    const handler = (event: MouseEvent) => {
+      const editingRow = document.querySelector<HTMLTableRowElement>(
+        'tr[data-editing-row="true"]',
+      );
+      if (editingRow && !editingRow.contains(event.target as Node)) {
+        handleCancel();
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [editing, handleCancel]);
 
   const handleSave = useCallback(
     (originalRow: TData, rowId: string) => {
@@ -609,6 +626,7 @@ function DataTableComponent<TData, TValue>({
                 <tr
                   key={rowId}
                   data-state={row.getIsSelected() ? "selected" : undefined}
+                  data-editing-row={anyCellEditing ? "true" : undefined}
                   className={cn(
                     "bg-data-table-body hover:bg-muted flex w-full border-b transition-colors",
                     onRowClick && !anyCellEditing && "cursor-pointer",

@@ -1,9 +1,19 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 import type { ColumnFiltersState } from "@tanstack/react-table";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { DataTable } from "@/components/table/data-table";
 import { DataTablePagination } from "@/components/table/data-table-pagination";
 import type { Product, SelectOption } from "@/@types";
@@ -48,6 +58,8 @@ export function EmployeesTable() {
 
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
 
   const columns = useMemo(
     () =>
@@ -102,16 +114,47 @@ export function EmployeesTable() {
         data={products}
         getRowId={(row) => String(row.id)}
         editMode="both"
-        className="max-h-[calc(100vh-var(--dashboard-header-height)-22rem)]"
+        className="h-[calc(100vh-var(--dashboard-header-height)-22rem)]"
         columnFilters={columnFilters}
         onColumnFiltersChange={handleColumnFiltersChange}
         onSave={(rowId, updated) => {
           updateProduct.mutate({ id: Number(rowId), payload: updated });
         }}
-        onDelete={(rowId) => {
-          deleteProduct.mutate({ id: Number(rowId) });
+        onDelete={(_rowId, row) => {
+          setPendingDelete(row);
         }}
       />
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this product?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete
+                ? `"${pendingDelete.title}" will be permanently removed. This cannot be undone.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDelete) {
+                  deleteProduct.mutate({ id: pendingDelete.id });
+                  setPendingDelete(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <DataTablePagination
         page={page}

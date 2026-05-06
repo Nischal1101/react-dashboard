@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { EmployeesTable } from "./employees-table";
 
 export default function Page() {
@@ -11,7 +12,10 @@ export default function Page() {
           deletes hit the API and invalidate the products query.
         </p>
       </div>
-      <EmployeesTable />
+
+      <Suspense>
+        <EmployeesTable />
+      </Suspense>
     </div>
   );
 }
