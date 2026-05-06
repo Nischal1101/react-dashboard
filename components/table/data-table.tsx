@@ -420,11 +420,11 @@ function DataTableComponent<TData, TValue>({
   const renderEditor = (
     columnId: string,
     row: TData,
-    meta: EditableColumnMeta<TData>,
+    meta: EditableColumnMeta<TData> | undefined,
     autoFocus: boolean,
     rowId: string,
   ) => {
-    const fieldType = meta.fieldType ?? "text";
+    const fieldType = meta?.fieldType ?? "text";
     const Renderer = registry[fieldType];
     const value =
       (draft as Record<string, unknown> | null)?.[columnId] ??
@@ -439,13 +439,15 @@ function DataTableComponent<TData, TValue>({
       );
     }
 
+    const editorMeta = (meta ?? {}) as EditableColumnMeta<TData>;
+
     return (
       <div className="relative w-full">
         <Renderer
           value={value}
           rawValue={value}
           row={row}
-          meta={meta as EditableColumnMeta<unknown, unknown>}
+          meta={editorMeta as EditableColumnMeta<unknown, unknown>}
           error={error}
           autoFocus={autoFocus}
           onChange={(v) => handleFieldChange(columnId, v)}
@@ -652,6 +654,9 @@ function DataTableComponent<TData, TValue>({
                       | undefined;
                     const columnId = cell.column.id;
                     const cellEditing = isCellEditing(rowId, columnId);
+                    const isColumnEditable =
+                      Boolean(meta?.fieldType) && meta?.editable !== false;
+                    const showEditor = cellEditing && isColumnEditable;
                     const editorAutoFocus =
                       editing?.kind === "cell" &&
                       editing.columnId === columnId &&
@@ -690,11 +695,11 @@ function DataTableComponent<TData, TValue>({
                           if (started) e.stopPropagation();
                         }}
                       >
-                        {cellEditing
+                        {showEditor
                           ? renderEditor(
                               columnId,
                               row.original,
-                              meta as EditableColumnMeta<TData>,
+                              meta,
                               editorAutoFocus,
                               rowId,
                             )

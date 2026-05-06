@@ -15,6 +15,17 @@ export const createColumns = (
     accessorKey: "title",
     header: ({ column }) => <DataTableHeader title="Title" column={column} />,
     size: 240,
+    meta: {
+      fieldType: "text",
+      required: true,
+      validate: (value: unknown) => {
+        if (typeof value !== "string" || value.trim() === "") return "Required";
+        if (value.trim().length < 2) return "Must be at least 2 characters";
+        return null;
+      },
+      normalize: (value: unknown) =>
+        (typeof value === "string" ? value.trim() : value) as never,
+    },
   },
   {
     accessorKey: "category",

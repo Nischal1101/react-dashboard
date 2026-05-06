@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { type Column } from "@tanstack/react-table";
 import { FilterIcon, MoveDown, MoveUp } from "lucide-react";
 
+import type { EditableColumnMeta } from "@/@types";
+
 interface DataTableHeaderProps<TData, TValue> {
   column: Column<TData, TValue>;
   title: string | React.ReactNode;
@@ -17,6 +19,10 @@ export function DataTableHeader<TData, TValue>({
   const canSort = column.getCanSort();
   const canHide = column.getCanHide();
   const canFilter = column.getCanFilter();
+  const meta = column.columnDef.meta as
+    | EditableColumnMeta<TData, TValue>
+    | undefined;
+  const hasFilter = Boolean(meta?.filterType && meta.filterType !== "none");
 
   if (!canSort && !canHide && !canFilter) {
     return <div className={cn(className)}>{title}</div>;
@@ -33,7 +39,7 @@ export function DataTableHeader<TData, TValue>({
         <p className="truncate [font-size:inherit] [font-weight:inherit]">
           {title}
         </p>
-        {column.columnDef.enableColumnFilter && (
+        {hasFilter && (
           <FilterIcon
             className={cn(
               "h-3.5 w-3.5 shrink-0",
