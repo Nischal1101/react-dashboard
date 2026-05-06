@@ -19,14 +19,25 @@ import {
   type ColumnDef,
   type ColumnFiltersState,
   type ColumnSizingState,
+  type FilterFn,
   type OnChangeFn,
+  type Row,
   type SortingState,
   type Updater,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, DatabaseZap, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  DatabaseZap,
+  Search,
+  X,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type {
   CellRegistry,
   EditableColumnMeta,
@@ -79,6 +90,10 @@ interface DataTableProps<TData, TValue> {
   pageSizeOptions?: number[];
   columnFilters?: ColumnFiltersState;
   onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
+  enableGlobalSearch?: boolean;
+  globalSearchKeys?: Array<keyof TData & string>;
+  globalSearchPlaceholder?: string;
+  globalSearchDebounceMs?: number;
   onEdit?: (rowId: string, row: TData) => void;
   onSave?: (rowId: string, updated: TData) => void;
   onCancel?: (rowId: string) => void;
@@ -153,6 +168,10 @@ function DataTableComponent<TData, TValue>({
   pageSizeOptions,
   columnFilters: controlledColumnFilters,
   onColumnFiltersChange: controlledOnColumnFiltersChange,
+  enableGlobalSearch = false,
+  globalSearchKeys,
+  globalSearchPlaceholder = "Search…",
+  globalSearchDebounceMs = 250,
   onEdit,
   onSave,
   onCancel,
@@ -179,9 +198,35 @@ function DataTableComponent<TData, TValue>({
     () => getColumnVisibilityFromDefs(columns),
   );
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+  const [globalSearchInput, setGlobalSearchInput] = useState("");
+  const debouncedGlobalSearch = useDebouncedValue(
+    globalSearchInput,
+    globalSearchDebounceMs,
+  );
   const [editing, setEditing] = useState<EditingState>(null);
   const [draft, setDraft] = useState<Partial<TData> | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const globalFilterFn = useMemo<FilterFn<TData>>(() => {
+    return (row: Row<TData>, _columnId, filterValue) => {
+      const needle = String(filterValue ?? "")
+        .trim()
+        .toLowerCase();
+      if (!needle) return true;
+
+      const matches = (raw: unknown) => {
+        if (raw === null || raw === undefined) return false;
+        return String(raw).toLowerCase().includes(needle);
+      };
+
+      if (globalSearchKeys && globalSearchKeys.length > 0) {
+        const original = row.original as Record<string, unknown>;
+        return globalSearchKeys.some((key) => matches(original[key]));
+      }
+
+      return row.getAllCells().some((cell) => matches(cell.getValue()));
+    };
+  }, [globalSearchKeys]);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -213,10 +258,16 @@ function DataTableComponent<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
-    getFilteredRowModel: enableFiltering ? getFilteredRowModel() : undefined,
+    getFilteredRowModel:
+      enableFiltering || enableGlobalSearch
+        ? getFilteredRowModel()
+        : undefined,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
+    onGlobalFilterChange: setGlobalSearchInput,
+    globalFilterFn,
+    enableGlobalFilter: enableGlobalSearch,
     enableSorting,
     enableMultiSort,
     enableColumnResizing: enableResizing,
@@ -226,6 +277,7 @@ function DataTableComponent<TData, TValue>({
       columnFilters,
       columnVisibility,
       columnSizing,
+      globalFilter: enableGlobalSearch ? debouncedGlobalSearch : "",
     },
     defaultColumn: {
       enableHiding: false,
@@ -471,7 +523,7 @@ function DataTableComponent<TData, TValue>({
 
   return (
     <div className="space-y-2 font-medium">
-      <div className="flex items-center justify-between gap-8 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 py-3">
         <div className="flex items-center gap-3.5">
           <p className="text-foreground text-sm font-medium">
             Showing {rows.length} results
@@ -495,6 +547,33 @@ function DataTableComponent<TData, TValue>({
             </>
           )}
         </div>
+        {enableGlobalSearch && (
+          <div className="relative w-full sm:w-72">
+            <Search
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2"
+              aria-hidden="true"
+            />
+            <Input
+              type="search"
+              role="searchbox"
+              aria-label="Search table"
+              placeholder={globalSearchPlaceholder}
+              value={globalSearchInput}
+              onChange={(e) => setGlobalSearchInput(e.target.value)}
+              className="h-8 pr-8 pl-8"
+            />
+            {globalSearchInput && (
+              <button
+                type="button"
+                onClick={() => setGlobalSearchInput("")}
+                aria-label="Clear search"
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div

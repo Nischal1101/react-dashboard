@@ -117,6 +117,9 @@ export function EmployeesTable() {
         className="h-[calc(100vh-var(--dashboard-header-height)-22rem)]"
         columnFilters={columnFilters}
         onColumnFiltersChange={handleColumnFiltersChange}
+        enableGlobalSearch
+        globalSearchKeys={["title", "category", "brand"]}
+        globalSearchPlaceholder="Search title, category, brand…"
         onSave={(rowId, updated) => {
           updateProduct.mutate({ id: Number(rowId), payload: updated });
         }}
