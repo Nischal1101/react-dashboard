@@ -1,0 +1,97 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+
+import { Input } from '@/components/ui/input'
+import type { EditableCellRenderProps } from '@/@types'
+
+export function formatCurrency(
+  value: number | null | undefined,
+  currency = 'USD',
+  locale = 'en-US',
+): string {
+  if (value == null || Number.isNaN(value)) return ''
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
+export function parseCurrency(raw: string): number | null {
+  if (raw == null) return null
+  const cleaned = raw.replace(/[^0-9.\-]/g, '')
+  if (cleaned === '' || cleaned === '-' || cleaned === '.') return null
+  const n = Number(cleaned)
+  return Number.isNaN(n) ? null : n
+}
+
+export function CurrencyCell({
+  value,
+  meta,
+  error,
+  autoFocus,
+  onChange,
+  onCommit,
+  onCancel,
+}: EditableCellRenderProps<unknown, number | null>) {
+  const ref = useRef<HTMLInputElement>(null)
+  const [text, setText] = useState<string>(value == null ? '' : String(value))
+
+  useEffect(() => {
+    if (autoFocus && ref.current) {
+      ref.current.focus()
+      ref.current.select()
+    }
+  }, [autoFocus])
+
+  return (
+    <div className="relative w-full">
+      <span className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 -translate-y-1/2 text-xs">
+        {currencySymbol(meta.currency ?? 'USD', meta.locale ?? 'en-US')}
+      </span>
+      <Input
+        ref={ref}
+        type="text"
+        inputMode="decimal"
+        value={text}
+        placeholder={meta.placeholder ?? '0.00'}
+        aria-invalid={Boolean(error)}
+        className="pl-6 text-right"
+        onChange={(e) => {
+          setText(e.target.value)
+          onChange(parseCurrency(e.target.value))
+        }}
+        onBlur={() => {
+          const n = parseCurrency(text)
+          if (n != null) setText(String(n))
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            onCommit()
+          } else if (e.key === 'Escape') {
+            e.preventDefault()
+            onCancel()
+          }
+        }}
+      />
+    </div>
+  )
+}
+
+function currencySymbol(currency: string, locale: string): string {
+  try {
+    return (
+      new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        currencyDisplay: 'narrowSymbol',
+      })
+        .formatToParts(0)
+        .find((p) => p.type === 'currency')?.value ?? '$'
+    )
+  } catch {
+    return '$'
+  }
+}

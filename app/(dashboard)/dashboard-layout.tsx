@@ -22,15 +22,15 @@ export default function DashboardLayout({
       }
     >
       <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-[var(--dashboard-header-height)] shrink-0 items-center gap-2 border-b px-4">
+      <SidebarInset className="min-w-0">
+        <header className="flex h-(--dashboard-header-height) shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator
             orientation="vertical"
             className="mr-2 data-[orientation=vertical]:h-4"
           />
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+        <div className="flex min-w-0 flex-1 flex-col gap-4 p-4">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
