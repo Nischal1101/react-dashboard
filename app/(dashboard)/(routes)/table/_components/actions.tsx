@@ -13,7 +13,6 @@ import type { Product, ProductsResponse } from "@/@types";
 interface ProductListParams {
   limit: number;
   skip: number;
-  q?: string;
   category?: string;
   brand?: string;
 }
@@ -36,7 +35,6 @@ export async function fetchProducts(
     _page: page,
     _per_page: queryParams.limit,
   };
-  if (queryParams.q) params["title:contains"] = queryParams.q;
   if (queryParams.category) params["category:eq"] = queryParams.category;
   if (queryParams.brand) params["brand:eq"] = queryParams.brand;
 

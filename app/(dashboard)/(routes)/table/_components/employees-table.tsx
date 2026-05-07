@@ -28,7 +28,6 @@ export function EmployeesTable() {
   const { data, isLoading, isFetching } = useFetchProducts({
     limit: pageSize,
     skip: (page - 1) * pageSize,
-    q: q || undefined,
     category: category || undefined,
     brand: brand || undefined,
   });
@@ -62,6 +61,7 @@ export function EmployeesTable() {
         isRefetching={isFetching && !isLoading}
         columns={columns}
         data={products}
+        globalFilter={q}
         getRowId={(row) => String(row.id)}
         editMode="both"
         className="h-[calc(100vh-var(--dashboard-header-height)-20.2rem)]"

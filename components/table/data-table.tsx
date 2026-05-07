@@ -1,9 +1,11 @@
+/* eslint-disable react-hooks/incompatible-library */
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
   type CellContext,
@@ -42,6 +44,7 @@ interface DataTableProps<TData, TValue> {
   editMode?: "row" | "cell" | "both" | "none";
   onSave?: (rowId: string, updated: TData) => void;
   onDelete?: (rowId: string, row: TData) => void;
+  globalFilter?: string;
 }
 
 function getColumnId<TData, TValue>(
@@ -64,6 +67,7 @@ function DataTableComponent<TData, TValue>({
   editMode = "none",
   onSave,
   onDelete,
+  globalFilter,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
@@ -77,6 +81,7 @@ function DataTableComponent<TData, TValue>({
     getRowId: getRowId ? (row, index) => getRowId(row, index) : undefined,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onColumnSizingChange: setColumnSizing,
     enableColumnResizing: true,
@@ -84,6 +89,7 @@ function DataTableComponent<TData, TValue>({
     state: {
       sorting,
       columnSizing,
+      globalFilter,
     },
     defaultColumn: {
       enableHiding: false,

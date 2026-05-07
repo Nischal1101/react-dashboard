@@ -64,7 +64,7 @@ export function ProductsToolbar({
         <Input
           type="text"
           aria-label="Search products"
-          placeholder="Search title…"
+          placeholder="Search products..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="h-8 pr-8"
@@ -72,6 +72,7 @@ export function ProductsToolbar({
         {searchInput && (
           <Button
             type="button"
+            variant="ghost"
             onClick={() => setSearchInput("")}
             aria-label="Clear search"
             className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
