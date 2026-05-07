@@ -1,4 +1,4 @@
-import type { Column, ColumnDef, RowData } from "@tanstack/react-table";
+import type { ColumnDef, RowData } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
 export type BuiltInFieldType =
@@ -75,19 +75,6 @@ export type EditableCellRenderer = (
 ) => ReactNode;
 
 export type CellRegistry = Record<string, EditableCellRenderer>;
-
-export interface FilterRendererProps<TData = unknown, TValue = unknown> {
-  column: Column<TData, TValue>;
-  value: unknown;
-  meta: EditableColumnMeta<TData, TValue>;
-  onChange: (value: unknown) => void;
-}
-
-export type FilterRenderer = (
-  props: FilterRendererProps<unknown, unknown>,
-) => ReactNode;
-
-export type FilterRegistry = Record<string, FilterRenderer>;
 
 export interface Product {
   id: number;

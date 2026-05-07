@@ -13,6 +13,9 @@ import type { Product, ProductsResponse } from "@/@types";
 interface ProductListParams {
   limit: number;
   skip: number;
+  q?: string;
+  category?: string;
+  brand?: string;
 }
 
 interface JsonServerPage<T> {
@@ -29,8 +32,16 @@ export async function fetchProducts(
   queryParams: ProductListParams,
 ): Promise<ProductsResponse> {
   const page = Math.floor(queryParams.skip / queryParams.limit) + 1;
+  const params: Record<string, string | number> = {
+    _page: page,
+    _per_page: queryParams.limit,
+  };
+  if (queryParams.q) params["title:contains"] = queryParams.q;
+  if (queryParams.category) params["category:eq"] = queryParams.category;
+  if (queryParams.brand) params["brand:eq"] = queryParams.brand;
+
   const response = await api.get<JsonServerPage<Product>>("/products", {
-    params: { _page: page, _per_page: queryParams.limit },
+    params,
   });
   return {
     products: response.data.data,

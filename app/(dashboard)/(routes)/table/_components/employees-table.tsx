@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { parseAsInteger, useQueryStates } from "nuqs";
+import { useCallback, useState } from "react";
+import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 
 import { DataTable } from "@/components/table/data-table";
 import { DataTablePagination } from "@/components/table/data-table-pagination";
@@ -14,16 +14,23 @@ import {
 } from "./actions";
 import { columns } from "./columns";
 import DeleteDialog from "./product-delete-dialog";
+import { ProductsToolbar } from "./products-toolbar";
 
 export function EmployeesTable() {
-  const [{ page, pageSize }, setQuery] = useQueryStates({
+  const [{ page, pageSize, q, category, brand }, setQuery] = useQueryStates({
     page: parseAsInteger.withDefault(1),
     pageSize: parseAsInteger.withDefault(10),
+    q: parseAsString.withDefault(""),
+    category: parseAsString.withDefault(""),
+    brand: parseAsString.withDefault(""),
   });
 
   const { data, isLoading, isFetching } = useFetchProducts({
     limit: pageSize,
     skip: (page - 1) * pageSize,
+    q: q || undefined,
+    category: category || undefined,
+    brand: brand || undefined,
   });
 
   const updateProduct = useUpdateProduct();
@@ -31,11 +38,25 @@ export function EmployeesTable() {
 
   const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
 
+  const handleToolbarChange = useCallback(
+    (next: { q?: string; category?: string; brand?: string }) => {
+      setQuery({ ...next, page: 1 });
+    },
+    [setQuery],
+  );
+
   const products = data?.products ?? [];
   const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
 
   return (
-    <div className="space-y-2">
+    <div className="flex h-full min-h-0 flex-1 flex-col gap-2">
+      <ProductsToolbar
+        q={q}
+        category={category}
+        brand={brand}
+        onChange={handleToolbarChange}
+      />
+
       <DataTable<Product, unknown>
         isLoading={isLoading}
         isRefetching={isFetching && !isLoading}
@@ -43,10 +64,7 @@ export function EmployeesTable() {
         data={products}
         getRowId={(row) => String(row.id)}
         editMode="both"
-        className="h-[calc(100vh-var(--dashboard-header-height)-22rem)]"
-        enableGlobalSearch
-        globalSearchKeys={["title", "category", "brand"]}
-        globalSearchPlaceholder="Search title, category, brand…"
+        className="min-h-0 flex-1"
         onSave={(rowId, updated) => {
           updateProduct.mutate({ id: Number(rowId), payload: updated });
         }}

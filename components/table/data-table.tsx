@@ -1,54 +1,27 @@
 "use client";
 
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type CSSProperties,
-} from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
   type CellContext,
   type ColumnDef,
-  type ColumnFiltersState,
   type ColumnSizingState,
-  type FilterFn,
-  type OnChangeFn,
-  type Row,
   type SortingState,
-  type Updater,
-  type VisibilityState,
 } from "@tanstack/react-table";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  DatabaseZap,
-  Search,
-  X,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, DatabaseZap } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type {
   CellRegistry,
   EditableColumnMeta,
   EditingState,
-  FilterRegistry,
 } from "@/@types";
 
 import { defaultCellRegistry } from "./cells";
 import DataTableSkeleton from "./data-table-skeleton";
-import { DataTableFilter } from "./data-table-filter";
-import { defaultFilterRegistry } from "./filters";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { formatViewValue } from "./view-formatters";
 
@@ -61,32 +34,18 @@ interface DataTableProps<TData, TValue> {
   gap?: number;
   isLoading?: boolean;
   className?: string;
-  date?: string;
-  clientSideFilters?: Array<keyof TData>;
   isRefetching?: boolean;
-  basic?: boolean;
   initialSorting?: SortingState;
   onRowClick?: (row: TData) => void;
   onRowHover?: (row: TData | null) => void;
   activeRowIndex?: number;
-  toolbarActions?: React.ReactNode;
   // editable / interaction props
   getRowId?: (row: TData, index: number) => string;
   editMode?: "row" | "cell" | "both" | "none";
   cellRegistry?: CellRegistry;
-  filterRegistry?: FilterRegistry;
   enableSorting?: boolean;
   enableMultiSort?: boolean;
-  enableFiltering?: boolean;
   enableResizing?: boolean;
-  pageSize?: number;
-  pageSizeOptions?: number[];
-  columnFilters?: ColumnFiltersState;
-  onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
-  enableGlobalSearch?: boolean;
-  globalSearchKeys?: Array<keyof TData & string>;
-  globalSearchPlaceholder?: string;
-  globalSearchDebounceMs?: number;
   onEdit?: (rowId: string, row: TData) => void;
   onSave?: (rowId: string, updated: TData) => void;
   onCancel?: (rowId: string) => void;
@@ -109,9 +68,7 @@ function DataTableComponent<TData, TValue>({
   gap = 16,
   isLoading = false,
   className,
-  date,
   isRefetching = false,
-  clientSideFilters = [],
   initialSorting,
   onRowClick,
   onRowHover,
@@ -119,93 +76,19 @@ function DataTableComponent<TData, TValue>({
   getRowId,
   editMode = "none",
   cellRegistry,
-  filterRegistry,
   enableSorting = true,
   enableMultiSort = true,
-  enableFiltering = true,
   enableResizing = true,
-  columnFilters: controlledColumnFilters,
-  onColumnFiltersChange: controlledOnColumnFiltersChange,
-  enableGlobalSearch = false,
-  globalSearchKeys,
-  globalSearchPlaceholder = "Search…",
-  globalSearchDebounceMs = 250,
   onEdit,
   onSave,
   onCancel,
   onDelete,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>(initialSorting || []);
-  const [internalColumnFilters, setInternalColumnFilters] =
-    useState<ColumnFiltersState>([]);
-  const isFiltersControlled = controlledColumnFilters !== undefined;
-  const columnFilters = isFiltersControlled
-    ? controlledColumnFilters
-    : internalColumnFilters;
-  const setColumnFilters: OnChangeFn<ColumnFiltersState> = useCallback(
-    (updater: Updater<ColumnFiltersState>) => {
-      if (isFiltersControlled) {
-        controlledOnColumnFiltersChange?.(updater);
-      } else {
-        setInternalColumnFilters(updater);
-      }
-    },
-    [isFiltersControlled, controlledOnColumnFiltersChange],
-  );
-
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
-  const [globalSearchInput, setGlobalSearchInput] = useState("");
-  const debouncedGlobalSearch = useDebouncedValue(
-    globalSearchInput,
-    globalSearchDebounceMs,
-  );
   const [editing, setEditing] = useState<EditingState>(null);
   const [draft, setDraft] = useState<Partial<TData> | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const globalFilterFn = useMemo<FilterFn<TData>>(() => {
-    return (row: Row<TData>, _columnId, filterValue) => {
-      const needle = String(filterValue ?? "")
-        .trim()
-        .toLowerCase();
-      if (!needle) return true;
-
-      const matches = (raw: unknown) => {
-        if (raw === null || raw === undefined) return false;
-        return String(raw).toLowerCase().includes(needle);
-      };
-
-      if (globalSearchKeys && globalSearchKeys.length > 0) {
-        const original = row.original as Record<string, unknown>;
-        return globalSearchKeys.some((key) => matches(original[key]));
-      }
-
-      return row.getAllCells().some((cell) => matches(cell.getValue()));
-    };
-  }, [globalSearchKeys]);
-
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (isFiltersControlled) return;
-    const filters: ColumnFiltersState = [];
-    searchParams.forEach((value, key) => {
-      if (clientSideFilters.includes(key as keyof TData)) {
-        filters.push({ id: key, value });
-      }
-    });
-    setInternalColumnFilters((prev) => {
-      const urlKeys = new Set(filters.map((f) => f.id));
-      const preserved = prev.filter(
-        (f) =>
-          !clientSideFilters.includes(f.id as keyof TData) || urlKeys.has(f.id),
-      );
-      const urlFilteredOut = preserved.filter((f) => !urlKeys.has(f.id));
-      return [...urlFilteredOut, ...filters];
-    });
-  }, [searchParams, clientSideFilters, isFiltersControlled]);
 
   const table = useReactTable({
     data,
@@ -214,22 +97,14 @@ function DataTableComponent<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
-    getFilteredRowModel:
-      enableFiltering || enableGlobalSearch ? getFilteredRowModel() : undefined,
-    onColumnFiltersChange: setColumnFilters,
     onColumnSizingChange: setColumnSizing,
-    onGlobalFilterChange: setGlobalSearchInput,
-    globalFilterFn,
-    enableGlobalFilter: enableGlobalSearch,
     enableSorting,
     enableMultiSort,
     enableColumnResizing: enableResizing,
     columnResizeMode: "onChange",
     state: {
       sorting,
-      columnFilters,
       columnSizing,
-      globalFilter: enableGlobalSearch ? debouncedGlobalSearch : "",
     },
     defaultColumn: {
       enableHiding: false,
@@ -240,7 +115,6 @@ function DataTableComponent<TData, TValue>({
   });
 
   const { rows } = table.getRowModel();
-  const hasActiveFilters = searchParams.toString().length > 0;
   const showActionsColumn = editMode !== "none" && Boolean(onEdit || onDelete);
   const totalSize =
     table.getTotalSize() + (showActionsColumn ? ACTIONS_COLUMN_WIDTH : 0);
@@ -249,15 +123,6 @@ function DataTableComponent<TData, TValue>({
     () => ({ ...defaultCellRegistry, ...(cellRegistry ?? {}) }),
     [cellRegistry],
   );
-
-  const filterRenderers = useMemo<FilterRegistry>(
-    () => ({ ...defaultFilterRegistry, ...(filterRegistry ?? {}) }),
-    [filterRegistry],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    router.push(pathname);
-  }, [router, pathname]);
 
   const isRowEditing = useCallback(
     (rowId: string) =>
@@ -443,65 +308,16 @@ function DataTableComponent<TData, TValue>({
   }
 
   return (
-    <div className="space-y-2 font-medium">
-      <div className="flex flex-wrap items-center justify-between gap-3 py-3">
-        <div className="flex items-center gap-3.5">
-          <p className="text-foreground text-sm font-medium">
-            Showing {rows.length} results
-          </p>
-          {date && (
-            <div className="bg-data-table-divider h-5 w-0.5 rounded-full" />
-          )}
-          {date && (
-            <p className="text-foreground text-sm font-medium">{date}</p>
-          )}
-          {hasActiveFilters && (
-            <>
-              <div className="bg-data-table-divider h-5 w-0.5 rounded-full" />
-              <button
-                onClick={handleClearFilters}
-                className="text-data-table-clear-filters flex cursor-pointer items-center gap-px"
-              >
-                <X className="mr-1 h-4 w-4" />
-                <p className="text-sm font-medium">Clear filters</p>
-              </button>
-            </>
-          )}
-        </div>
-        {enableGlobalSearch && (
-          <div className="relative w-full sm:w-72">
-            <Search
-              className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2"
-              aria-hidden="true"
-            />
-            <Input
-              type="search"
-              role="searchbox"
-              aria-label="Search table"
-              placeholder={globalSearchPlaceholder}
-              value={globalSearchInput}
-              onChange={(e) => setGlobalSearchInput(e.target.value)}
-              className="h-8 pr-8 pl-8"
-            />
-            {globalSearchInput && (
-              <button
-                type="button"
-                onClick={() => setGlobalSearchInput("")}
-                aria-label="Clear search"
-                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
+    <div
+      className={cn(
+        "flex min-h-0 flex-col font-medium",
+        className,
+      )}
+    >
       <div
         className={cn(
-          "w-full overflow-auto rounded-md border",
+          "w-full min-h-0 flex-1 overflow-auto rounded-md border",
           isRefetching && "animate-pulse opacity-60",
-          className,
         )}
       >
         <table
@@ -516,9 +332,6 @@ function DataTableComponent<TData, TValue>({
               >
                 {headerGroup.headers.map((header, index) => {
                   const isFirstColumn = index === 0;
-                  const meta = header.column.columnDef.meta as
-                    | EditableColumnMeta<TData>
-                    | undefined;
                   const sortDir = header.column.getIsSorted();
                   const canSort = enableSorting && header.column.getCanSort();
                   const canResize =
@@ -575,14 +388,6 @@ function DataTableComponent<TData, TValue>({
                           </span>
                         )}
                       </div>
-                      {enableFiltering && meta?.filterType && (
-                        <div className="mt-1">
-                          <DataTableFilter
-                            column={header.column}
-                            registry={filterRenderers}
-                          />
-                        </div>
-                      )}
                       {canResize && (
                         <div
                           onMouseDown={header.getResizeHandler()}
