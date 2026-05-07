@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -11,44 +11,36 @@ import {
   type ColumnSizingState,
   type SortingState,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, DatabaseZap } from "lucide-react";
+import { DatabaseZap } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type {
-  CellRegistry,
-  EditableColumnMeta,
-  EditingState,
-} from "@/@types";
+import type { EditableColumnMeta, EditingState } from "@/@types";
+
+import {
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 import { defaultCellRegistry } from "./cells";
 import DataTableSkeleton from "./data-table-skeleton";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { formatViewValue } from "./view-formatters";
 
-
 const ACTIONS_COLUMN_WIDTH = 96;
+const CELL_PADDING = 16;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  gap?: number;
   isLoading?: boolean;
-  className?: string;
   isRefetching?: boolean;
-  initialSorting?: SortingState;
-  onRowClick?: (row: TData) => void;
-  onRowHover?: (row: TData | null) => void;
-  activeRowIndex?: number;
-  // editable / interaction props
+  className?: string;
   getRowId?: (row: TData, index: number) => string;
   editMode?: "row" | "cell" | "both" | "none";
-  cellRegistry?: CellRegistry;
-  enableSorting?: boolean;
-  enableMultiSort?: boolean;
-  enableResizing?: boolean;
-  onEdit?: (rowId: string, row: TData) => void;
   onSave?: (rowId: string, updated: TData) => void;
-  onCancel?: (rowId: string) => void;
   onDelete?: (rowId: string, row: TData) => void;
 }
 
@@ -65,26 +57,15 @@ function getColumnId<TData, TValue>(
 function DataTableComponent<TData, TValue>({
   columns,
   data,
-  gap = 16,
   isLoading = false,
-  className,
   isRefetching = false,
-  initialSorting,
-  onRowClick,
-  onRowHover,
-  activeRowIndex,
+  className,
   getRowId,
   editMode = "none",
-  cellRegistry,
-  enableSorting = true,
-  enableMultiSort = true,
-  enableResizing = true,
-  onEdit,
   onSave,
-  onCancel,
   onDelete,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>(initialSorting || []);
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [editing, setEditing] = useState<EditingState>(null);
   const [draft, setDraft] = useState<Partial<TData> | null>(null);
@@ -95,12 +76,10 @@ function DataTableComponent<TData, TValue>({
     columns,
     getRowId: getRowId ? (row, index) => getRowId(row, index) : undefined,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
     onColumnSizingChange: setColumnSizing,
-    enableSorting,
-    enableMultiSort,
-    enableColumnResizing: enableResizing,
+    enableColumnResizing: true,
     columnResizeMode: "onChange",
     state: {
       sorting,
@@ -115,14 +94,9 @@ function DataTableComponent<TData, TValue>({
   });
 
   const { rows } = table.getRowModel();
-  const showActionsColumn = editMode !== "none" && Boolean(onEdit || onDelete);
+  const showActionsColumn = editMode !== "none" && Boolean(onDelete);
   const totalSize =
     table.getTotalSize() + (showActionsColumn ? ACTIONS_COLUMN_WIDTH : 0);
-
-  const registry = useMemo<CellRegistry>(
-    () => ({ ...defaultCellRegistry, ...(cellRegistry ?? {}) }),
-    [cellRegistry],
-  );
 
   const isRowEditing = useCallback(
     (rowId: string) =>
@@ -144,9 +118,6 @@ function DataTableComponent<TData, TValue>({
   const beginEdit = useCallback(
     (kind: "row" | "cell", rowId: string, row: TData, columnId?: string) => {
       const switchingRow = editing != null && editing.rowId !== rowId;
-      if (switchingRow) {
-        onCancel?.(editing.rowId);
-      }
       if (kind === "cell" && columnId) {
         setEditing({ kind: "cell", rowId, columnId });
       } else {
@@ -154,17 +125,15 @@ function DataTableComponent<TData, TValue>({
       }
       setDraft((prev) => (switchingRow ? { ...row } : (prev ?? { ...row })));
       setErrors({});
-      onEdit?.(rowId, row);
     },
-    [editing, onEdit, onCancel],
+    [editing],
   );
 
   const handleCancel = useCallback(() => {
-    if (editing) onCancel?.(editing.rowId);
     setEditing(null);
     setDraft(null);
     setErrors({});
-  }, [editing, onCancel]);
+  }, []);
 
   useEffect(() => {
     if (!editing) return;
@@ -263,7 +232,7 @@ function DataTableComponent<TData, TValue>({
     rowId: string,
   ) => {
     const fieldType = meta?.fieldType ?? "text";
-    const Renderer = registry[fieldType];
+    const Renderer = defaultCellRegistry[fieldType];
     const value =
       (draft as Record<string, unknown> | null)?.[columnId] ??
       (row as Record<string, unknown>)[columnId];
@@ -302,18 +271,11 @@ function DataTableComponent<TData, TValue>({
   };
 
   if (isLoading) {
-    return (
-      <DataTableSkeleton columns={columns} gap={gap} className={className} />
-    );
+    return <DataTableSkeleton columns={columns} className={className} />;
   }
 
   return (
-    <div
-      className={cn(
-        "flex min-h-0 flex-col font-medium",
-        className,
-      )}
-    >
+    <div className={cn("flex min-h-0 flex-col font-medium", className)}>
       <div
         className={cn(
           "w-full min-h-0 flex-1 overflow-auto rounded-md border",
@@ -324,23 +286,18 @@ function DataTableComponent<TData, TValue>({
           className="relative grid caption-bottom text-sm"
           style={{ minWidth: totalSize, width: "100%" }}
         >
-          <thead className="bg-data-table-header sticky top-0 z-20 grid">
+          <TableHeader className="bg-data-table-header sticky top-0 z-20 grid">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr
+              <TableRow
                 key={headerGroup.id}
-                className="flex w-full border-b transition-colors"
+                className="flex w-full border-b transition-colors hover:bg-transparent"
               >
                 {headerGroup.headers.map((header, index) => {
                   const isFirstColumn = index === 0;
-                  const sortDir = header.column.getIsSorted();
-                  const canSort = enableSorting && header.column.getCanSort();
-                  const canResize =
-                    enableResizing && header.column.getCanResize();
-                  const customHeader =
-                    typeof header.column.columnDef.header === "function";
+                  const canResize = header.column.getCanResize();
 
                   return (
-                    <th
+                    <TableHead
                       key={header.id}
                       className={cn(
                         "text-foreground relative inline-flex h-auto min-h-10 flex-col items-stretch justify-center px-0 py-1.5 align-middle font-medium whitespace-nowrap",
@@ -352,41 +309,18 @@ function DataTableComponent<TData, TValue>({
                         width: header.getSize(),
                         flexGrow: header.getSize(),
                         flexShrink: 0,
-                        paddingLeft: gap,
-                        paddingRight: gap,
+                        paddingLeft: CELL_PADDING,
+                        paddingRight: CELL_PADDING,
                       }}
                       colSpan={header.colSpan}
                     >
-                      <div
-                        className={cn(
-                          "flex items-center gap-1",
-                          canSort &&
-                            !customHeader &&
-                            "cursor-pointer select-none",
-                        )}
-                        onClick={
-                          canSort && !customHeader
-                            ? header.column.getToggleSortingHandler()
-                            : undefined
-                        }
-                      >
+                      <div className="flex items-center gap-1">
                         {header.isPlaceholder
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
-                        {canSort && !customHeader && (
-                          <span className="text-muted-foreground">
-                            {sortDir === "asc" ? (
-                              <ArrowUp className="h-3 w-3" />
-                            ) : sortDir === "desc" ? (
-                              <ArrowDown className="h-3 w-3" />
-                            ) : (
-                              <ArrowUpDown className="h-3 w-3 opacity-40" />
-                            )}
-                          </span>
-                        )}
                       </div>
                       {canResize && (
                         <div
@@ -401,26 +335,26 @@ function DataTableComponent<TData, TValue>({
                           aria-hidden
                         />
                       )}
-                    </th>
+                    </TableHead>
                   );
                 })}
                 {showActionsColumn && (
-                  <th
-                    className="text-muted-foreground inline-flex items-center justify-center text-xs font-medium"
+                  <TableHead
+                    className="text-muted-foreground inline-flex h-auto items-center justify-center text-xs font-medium"
                     style={{
                       width: ACTIONS_COLUMN_WIDTH,
                       flexShrink: 0,
-                      paddingLeft: gap,
-                      paddingRight: gap,
+                      paddingLeft: CELL_PADDING,
+                      paddingRight: CELL_PADDING,
                     }}
                   >
                     Actions
-                  </th>
+                  </TableHead>
                 )}
-              </tr>
+              </TableRow>
             ))}
-          </thead>
-          <tbody className="grid">
+          </TableHeader>
+          <TableBody className="grid">
             {rows.map((row, index) => {
               const rowId = row.id;
               const isLastRow = index === rows.length - 1;
@@ -429,27 +363,14 @@ function DataTableComponent<TData, TValue>({
               const rowHasErrors = Object.keys(errors).length > 0;
 
               return (
-                <tr
+                <TableRow
                   key={rowId}
-                  data-state={row.getIsSelected() ? "selected" : undefined}
                   data-editing-row={anyCellEditing ? "true" : undefined}
                   className={cn(
                     "bg-data-table-body hover:bg-muted flex w-full border-b transition-colors",
-                    onRowClick && !anyCellEditing && "cursor-pointer",
-                    activeRowIndex === index &&
-                      "bg-muted ring-primary/20 ring-1",
                     anyCellEditing && "bg-muted/50",
                     isLastRow && "border-b-0",
                   )}
-                  onClick={
-                    onRowClick && !anyCellEditing
-                      ? () => onRowClick(row.original)
-                      : undefined
-                  }
-                  onMouseEnter={
-                    onRowHover ? () => onRowHover(row.original) : undefined
-                  }
-                  onMouseLeave={onRowHover ? () => onRowHover(null) : undefined}
                 >
                   {row.getVisibleCells().map((cell, cellIndex) => {
                     const isFirstColumn = cellIndex === 0;
@@ -467,12 +388,10 @@ function DataTableComponent<TData, TValue>({
                       editing.rowId === rowId;
 
                     return (
-                      <td
+                      <TableCell
                         key={cell.id}
                         className={cn(
                           "relative inline-flex items-center p-2 align-middle whitespace-nowrap",
-                          cell.column.id.toLowerCase() === "symbol" &&
-                            "border-r",
                           isFirstColumn &&
                             "bg-data-table-body sticky left-0 z-10 border-r",
                         )}
@@ -480,8 +399,8 @@ function DataTableComponent<TData, TValue>({
                           width: cell.column.getSize(),
                           flexGrow: cell.column.getSize(),
                           flexShrink: 0,
-                          paddingLeft: gap,
-                          paddingRight: gap,
+                          paddingLeft: CELL_PADDING,
+                          paddingRight: CELL_PADDING,
                         }}
                         onClick={(e) => {
                           if (cellEditing) {
@@ -518,23 +437,22 @@ function DataTableComponent<TData, TValue>({
                                 cell.getValue(),
                                 meta as EditableColumnMeta<unknown, unknown>,
                               )}
-                      </td>
+                      </TableCell>
                     );
                   })}
                   {showActionsColumn && (
-                    <td
+                    <TableCell
                       className="inline-flex items-center justify-center p-2"
                       style={{
                         width: ACTIONS_COLUMN_WIDTH,
                         flexShrink: 0,
-                        paddingLeft: gap,
-                        paddingRight: gap,
+                        paddingLeft: CELL_PADDING,
+                        paddingRight: CELL_PADDING,
                       }}
                     >
                       <DataTableRowActions
                         isEditing={anyCellEditing === true}
                         hasErrors={anyCellEditing && rowHasErrors}
-                        canEdit={Boolean(onEdit)}
                         canDelete={Boolean(onDelete)}
                         onEdit={
                           editMode === "cell"
@@ -549,12 +467,12 @@ function DataTableComponent<TData, TValue>({
                             : undefined
                         }
                       />
-                    </td>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               );
             })}
-          </tbody>
+          </TableBody>
         </table>
 
         {!isLoading && !rows.length && (
@@ -572,9 +490,7 @@ function DataTableComponent<TData, TValue>({
 
 export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
   return (
-    <Suspense
-      fallback={<DataTableSkeleton columns={props.columns} gap={props.gap} />}
-    >
+    <Suspense fallback={<DataTableSkeleton columns={props.columns} />}>
       <DataTableComponent {...props} />
     </Suspense>
   );

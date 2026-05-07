@@ -64,7 +64,7 @@ export function EmployeesTable() {
         data={products}
         getRowId={(row) => String(row.id)}
         editMode="both"
-        className="min-h-0 flex-1"
+        className="h-[calc(100vh-var(--dashboard-header-height)-20.2rem)]"
         onSave={(rowId, updated) => {
           updateProduct.mutate({ id: Number(rowId), payload: updated });
         }}

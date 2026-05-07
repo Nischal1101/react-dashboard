@@ -1,4 +1,4 @@
-import type { ColumnDef, RowData } from "@tanstack/react-table";
+import type { RowData } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
 export type BuiltInFieldType =
@@ -18,22 +18,15 @@ export interface SelectOption {
   value: string;
 }
 
-export type FilterType = "text" | "select" | "number" | "none";
-
 export interface EditableColumnMeta<TData = unknown, TValue = unknown> {
   fieldType?: EditableFieldType;
   editable?: boolean;
-  filterType?: FilterType;
-  filterOptions?: SelectOption[];
   options?: SelectOption[];
   placeholder?: string;
   validate?: (value: TValue, row: TData) => string | null;
-  format?: (value: TValue, row: TData) => string;
-  parse?: (rawInput: string) => TValue;
   normalize?: (value: TValue) => TValue;
   currency?: string;
   locale?: string;
-  align?: "left" | "right" | "center";
   min?: number;
   max?: number;
   step?: number;
@@ -47,11 +40,6 @@ declare module "@tanstack/react-table" {
     TValue,
   > extends EditableColumnMeta<TData, TValue> {}
 }
-
-export type EditableColumnDef<TData, TValue = unknown> = ColumnDef<
-  TData,
-  TValue
->;
 
 export type EditingState =
   | { kind: "row"; rowId: string; focusColumnId?: string }
