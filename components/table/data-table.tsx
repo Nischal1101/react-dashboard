@@ -52,19 +52,12 @@ import { defaultFilterRegistry } from "./filters";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { formatViewValue } from "./view-formatters";
 
-type Alignment = "left" | "right" | "center" | "justify" | "start" | "end";
 
 const ACTIONS_COLUMN_WIDTH = 96;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  align?:
-    | Alignment
-    | {
-        default?: Alignment;
-        overrides?: Partial<Record<keyof TData, Alignment>>;
-      };
   gap?: number;
   isLoading?: boolean;
   className?: string;
@@ -100,38 +93,6 @@ interface DataTableProps<TData, TValue> {
   onDelete?: (rowId: string, row: TData) => void;
 }
 
-function getColumnVisibilityFromDefs<TData, TValue>(
-  columns: ColumnDef<TData, TValue>[],
-): VisibilityState {
-  const visibility: VisibilityState = {};
-
-  const visit = (defs: ColumnDef<TData, TValue>[]) => {
-    defs.forEach((def) => {
-      const hidden =
-        (def as ColumnDef<TData, TValue> & { hidden?: boolean }).hidden ??
-        (def as ColumnDef<TData, TValue> & { meta?: { hidden?: boolean } }).meta
-          ?.hidden;
-
-      const id =
-        (def as { id?: string }).id ??
-        (def as { accessorKey?: string | number | symbol }).accessorKey;
-
-      if (hidden === true && typeof id === "string" && id.length > 0) {
-        visibility[id] = false;
-      }
-
-      const childColumns = (def as { columns?: ColumnDef<TData, TValue>[] })
-        .columns;
-      if (Array.isArray(childColumns) && childColumns.length > 0) {
-        visit(childColumns);
-      }
-    });
-  };
-
-  visit(columns);
-  return visibility;
-}
-
 function getColumnId<TData, TValue>(
   def: ColumnDef<TData, TValue>,
 ): string | undefined {
@@ -145,7 +106,6 @@ function getColumnId<TData, TValue>(
 function DataTableComponent<TData, TValue>({
   columns,
   data,
-  align,
   gap = 16,
   isLoading = false,
   className,
@@ -164,8 +124,6 @@ function DataTableComponent<TData, TValue>({
   enableMultiSort = true,
   enableFiltering = true,
   enableResizing = true,
-  pageSize = 10,
-  pageSizeOptions,
   columnFilters: controlledColumnFilters,
   onColumnFiltersChange: controlledOnColumnFiltersChange,
   enableGlobalSearch = false,
@@ -194,9 +152,7 @@ function DataTableComponent<TData, TValue>({
     },
     [isFiltersControlled, controlledOnColumnFiltersChange],
   );
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    () => getColumnVisibilityFromDefs(columns),
-  );
+
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [globalSearchInput, setGlobalSearchInput] = useState("");
   const debouncedGlobalSearch = useDebouncedValue(
@@ -259,11 +215,8 @@ function DataTableComponent<TData, TValue>({
     onSortingChange: setSorting,
     getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
     getFilteredRowModel:
-      enableFiltering || enableGlobalSearch
-        ? getFilteredRowModel()
-        : undefined,
+      enableFiltering || enableGlobalSearch ? getFilteredRowModel() : undefined,
     onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
     onGlobalFilterChange: setGlobalSearchInput,
     globalFilterFn,
@@ -275,7 +228,6 @@ function DataTableComponent<TData, TValue>({
     state: {
       sorting,
       columnFilters,
-      columnVisibility,
       columnSizing,
       globalFilter: enableGlobalSearch ? debouncedGlobalSearch : "",
     },
@@ -306,37 +258,6 @@ function DataTableComponent<TData, TValue>({
   const handleClearFilters = useCallback(() => {
     router.push(pathname);
   }, [router, pathname]);
-
-  const getAlignmentStyle = useCallback(
-    (key: keyof TData): CSSProperties | undefined => {
-      if (!align) return undefined;
-      let finalAlignmentValue: Alignment | undefined =
-        typeof align === "string" ? align : align.default;
-      if (
-        typeof align === "object" &&
-        align.overrides &&
-        align.overrides[key]
-      ) {
-        finalAlignmentValue = align.overrides[key];
-      }
-      if (!finalAlignmentValue) return undefined;
-      switch (finalAlignmentValue) {
-        case "left":
-        case "start":
-          return { justifyContent: "flex-start" };
-        case "right":
-        case "end":
-          return { justifyContent: "flex-end" };
-        case "center":
-          return { justifyContent: "center" };
-        case "justify":
-          return { justifyContent: "space-between" };
-        default:
-          return undefined;
-      }
-    },
-    [align],
-  );
 
   const isRowEditing = useCallback(
     (rowId: string) =>
@@ -626,10 +547,9 @@ function DataTableComponent<TData, TValue>({
                       <div
                         className={cn(
                           "flex items-center gap-1",
-                          canSort && !customHeader && "cursor-pointer select-none",
-                        )}
-                        style={getAlignmentStyle(
-                          header.column.id as keyof TData,
+                          canSort &&
+                            !customHeader &&
+                            "cursor-pointer select-none",
                         )}
                         onClick={
                           canSort && !customHeader
@@ -757,7 +677,6 @@ function DataTableComponent<TData, TValue>({
                           flexShrink: 0,
                           paddingLeft: gap,
                           paddingRight: gap,
-                          ...getAlignmentStyle(columnId as keyof TData),
                         }}
                         onClick={(e) => {
                           if (cellEditing) {

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { EmployeesTable } from "./employees-table";
+import { EmployeesTable } from "./_components/employees-table";
 
 export default function Page() {
   return (

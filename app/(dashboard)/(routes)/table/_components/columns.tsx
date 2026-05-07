@@ -1,17 +1,13 @@
 "use client";
 
 import { DataTableHeader } from "@/components/table/data-table-header";
-import type { EditableColumnDef, Product, SelectOption } from "@/@types";
+import { ColumnDef } from "@tanstack/react-table";
 
-interface ColumnOptions {
-  categories: SelectOption[];
-  brands: SelectOption[];
-}
+import type { Product } from "@/@types";
 
-export const createColumns = (
-  options: ColumnOptions = { categories: [], brands: [] },
-): EditableColumnDef<Product>[] => [
+export const columns: ColumnDef<Product>[] = [
   {
+    id: "title",
     accessorKey: "title",
     header: ({ column }) => <DataTableHeader title="Title" column={column} />,
     size: 240,
@@ -35,8 +31,6 @@ export const createColumns = (
     size: 160,
     meta: {
       fieldType: "text",
-      filterType: "select",
-      filterOptions: options.categories,
     },
   },
   {
@@ -45,8 +39,6 @@ export const createColumns = (
     size: 160,
     meta: {
       fieldType: "text",
-      filterType: "select",
-      filterOptions: options.brands,
     },
   },
   {
