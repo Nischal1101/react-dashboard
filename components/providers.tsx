@@ -9,6 +9,7 @@ import {
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { useState } from "react";
 import { ThemeProvider } from "./theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 type ProviderProps = {
   children: React.ReactNode;
@@ -53,6 +54,7 @@ export default function Providers({ children }: ProviderProps) {
       <NuqsAdapter>
         <QueryClientProvider client={queryClient}>
           {children}
+          <Toaster />
         </QueryClientProvider>
       </NuqsAdapter>
     </ThemeProvider>
