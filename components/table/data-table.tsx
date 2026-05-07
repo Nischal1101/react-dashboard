@@ -301,7 +301,7 @@ function DataTableComponent<TData, TValue>({
                       key={header.id}
                       className={cn(
                         "text-foreground relative inline-flex h-auto min-h-10 flex-col items-stretch justify-center px-0 py-1.5 align-middle font-medium whitespace-nowrap",
-                        index !== headerGroup.headers.length - 1 && "border-r",
+                        "border-r",
                         isFirstColumn &&
                           "bg-data-table-header sticky left-0 z-20",
                       )}
@@ -391,9 +391,9 @@ function DataTableComponent<TData, TValue>({
                       <TableCell
                         key={cell.id}
                         className={cn(
-                          "relative inline-flex items-center p-2 align-middle whitespace-nowrap",
+                          "relative inline-flex items-center p-2 align-middle whitespace-nowrap border-r",
                           isFirstColumn &&
-                            "bg-data-table-body sticky left-0 z-10 border-r",
+                            "bg-data-table-body sticky left-0 z-10 ",
                         )}
                         style={{
                           width: cell.column.getSize(),
@@ -442,7 +442,7 @@ function DataTableComponent<TData, TValue>({
                   })}
                   {showActionsColumn && (
                     <TableCell
-                      className="inline-flex items-center justify-center p-2"
+                      className="inline-flex items-center justify-center p-2 "
                       style={{
                         width: ACTIONS_COLUMN_WIDTH,
                         flexShrink: 0,
