@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -16,7 +16,7 @@ import {
 import { DatabaseZap } from "lucide-react";
 
 import { cn, formatViewValue } from "@/lib/utils";
-import type { TEditableColumnMeta, TEditingState } from "@/@types";
+import type { TEditableColumnMeta } from "@/@types";
 
 import {
   TableBody,
@@ -29,6 +29,7 @@ import {
 import { defaultCellRegistry } from "./cells";
 import DataTableSkeleton from "./data-table-skeleton";
 import { DataTableRowActions } from "./data-table-row-actions";
+import { useTableEditing } from "@/hooks/use-table-editing";
 
 const ACTIONS_COLUMN_WIDTH = 96;
 const CELL_PADDING = 16;
@@ -46,16 +47,6 @@ interface DataTableProps<TData, TValue> {
   globalFilter?: string;
 }
 
-function getColumnId<TData, TValue>(
-  def: ColumnDef<TData, TValue>,
-): string | undefined {
-  const id = (def as { id?: string }).id;
-  if (id) return id;
-  const accessorKey = (def as { accessorKey?: string | number | symbol })
-    .accessorKey;
-  return typeof accessorKey === "string" ? accessorKey : undefined;
-}
-
 function DataTableComponent<TData, TValue>({
   columns,
   data,
@@ -70,9 +61,19 @@ function DataTableComponent<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
-  const [editing, setEditing] = useState<TEditingState>(null);
-  const [draft, setDraft] = useState<Partial<TData> | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const {
+    editing,
+    draft,
+    errors,
+    isRowEditing,
+    isCellEditing,
+    beginEdit,
+    tryStartCellEdit,
+    handleCancel,
+    handleSave,
+    handleFieldChange,
+  } = useTableEditing({ columns, editMode, onSave });
 
   const table = useReactTable({
     data,
@@ -102,132 +103,6 @@ function DataTableComponent<TData, TValue>({
   const showActionsColumn = editMode !== "none" && Boolean(onDelete);
   const totalSize =
     table.getTotalSize() + (showActionsColumn ? ACTIONS_COLUMN_WIDTH : 0);
-
-  const isRowEditing = useCallback(
-    (rowId: string) =>
-      editing != null && editing.kind === "row" && editing.rowId === rowId,
-    [editing],
-  );
-
-  const isCellEditing = useCallback(
-    (rowId: string, columnId: string) => {
-      if (!editing) return false;
-      if (editing.kind === "cell")
-        return editing.rowId === rowId && editing.columnId === columnId;
-      if (editing.kind === "row") return editing.rowId === rowId;
-      return false;
-    },
-    [editing],
-  );
-
-  const beginEdit = useCallback(
-    (kind: "row" | "cell", rowId: string, row: TData, columnId?: string) => {
-      const switchingRow = editing != null && editing.rowId !== rowId;
-      if (kind === "cell" && columnId) {
-        setEditing({ kind: "cell", rowId, columnId });
-      } else {
-        setEditing({ kind: "row", rowId });
-      }
-      setDraft((prev) => (switchingRow ? { ...row } : (prev ?? { ...row })));
-      setErrors({});
-    },
-    [editing],
-  );
-
-  const handleCancel = useCallback(() => {
-    setEditing(null);
-    setDraft(null);
-    setErrors({});
-  }, []);
-
-  useEffect(() => {
-    if (!editing) return;
-    const handler = (event: MouseEvent) => {
-      const editingRow = document.querySelector<HTMLTableRowElement>(
-        'tr[data-editing-row="true"]',
-      );
-      if (editingRow && !editingRow.contains(event.target as Node)) {
-        handleCancel();
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [editing, handleCancel]);
-
-  const handleSave = useCallback(
-    (originalRow: TData, rowId: string) => {
-      if (!editing || !draft) return;
-      const newErrors: Record<string, string> = {};
-      const merged = { ...originalRow } as TData;
-
-      const editableColumns =
-        editing.kind === "cell"
-          ? columns.filter((c) => getColumnId(c) === editing.columnId)
-          : columns;
-
-      for (const col of editableColumns) {
-        const colId = getColumnId(col);
-        if (!colId) continue;
-        const meta = col.meta as TEditableColumnMeta<TData> | undefined;
-        if (meta?.editable === false) continue;
-        const raw = (draft as Record<string, unknown>)[colId];
-        const normalized = meta?.normalize ? meta.normalize(raw as never) : raw;
-        if (meta?.validate) {
-          const err = meta.validate(normalized as never, originalRow);
-          if (err) newErrors[colId] = err;
-        } else if (
-          meta?.required &&
-          (normalized === "" || normalized == null)
-        ) {
-          newErrors[colId] = "Required";
-        }
-        (merged as Record<string, unknown>)[colId] = normalized;
-      }
-
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        return;
-      }
-
-      onSave?.(rowId, merged);
-      setEditing(null);
-      setDraft(null);
-      setErrors({});
-    },
-    [columns, draft, editing, onSave],
-  );
-
-  const handleFieldChange = useCallback((columnId: string, value: unknown) => {
-    setDraft(
-      (prev) =>
-        ({
-          ...(prev ?? {}),
-          [columnId]: value,
-        }) as Partial<TData>,
-    );
-    setErrors((prev) => {
-      if (!prev[columnId]) return prev;
-      const next = { ...prev };
-      delete next[columnId];
-      return next;
-    });
-  }, []);
-
-  const tryStartCellEdit = useCallback(
-    (
-      rowId: string,
-      columnId: string,
-      row: TData,
-      meta?: TEditableColumnMeta<TData>,
-    ) => {
-      if (editMode === "none" || editMode === "row") return false;
-      if (meta?.editable === false) return false;
-      if (!meta?.fieldType) return false;
-      beginEdit("cell", rowId, row, columnId);
-      return true;
-    },
-    [beginEdit, editMode],
-  );
 
   const renderEditor = (
     columnId: string,
@@ -480,7 +355,7 @@ function DataTableComponent<TData, TValue>({
               );
             })}
           </TableBody>
-        </table>
+        </table> 
 
         {!isLoading && !rows.length && (
           <div className="flex h-[300px] items-center justify-center">
