@@ -6,9 +6,9 @@
       "description": "Tensor G3 chip with computational camera tricks.",
       "category": "smartphones",
       "price": 69,
-      "discountPercentage": 10,
-      "rating": 4.4,
-      "stock": 44,
+      "discountPercentage": 4,
+      "rating": 2,
+      "stock": 4,
       "brand": "Google"
     },
     {
@@ -18,8 +18,8 @@
       "category": "smartphones",
       "price": 749.5,
       "discountPercentage": 12,
-      "rating": 4.3,
-      "stock": 20,
+      "rating": 1,
+      "stock": 242,
       "brand": "OnePlus"
     },
     {
@@ -30,7 +30,7 @@
       "price": 1999,
       "discountPercentage": 4,
       "rating": 4.8,
-      "stock": 14,
+      "stock": 122,
       "brand": "Apple"
     },
     {
@@ -1099,28 +1099,6 @@
       "rating": 4.2,
       "stock": 18,
       "brand": "IKEA"
-    },
-    {
-      "id": "103",
-      "title": "West Elm Mid-Century Bed Frame",
-      "description": "Solid acacia tapered-leg queen bed frame.",
-      "category": "furniture",
-      "price": 1399,
-      "discountPercentage": 12,
-      "rating": 4.5,
-      "stock": 9,
-      "brand": "West Elm"
-    },
-    {
-      "id": "104",
-      "title": "Article Sven Sofa",
-      "description": "Tufted leather three-seater sofa, charme tan.",
-      "category": "furniture",
-      "price": 1799,
-      "discountPercentage": 7,
-      "rating": 4.6,
-      "stock": 11,
-      "brand": "Article"
     },
     {
       "id": "105",

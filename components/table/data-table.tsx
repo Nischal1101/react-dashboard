@@ -239,9 +239,11 @@ function DataTableComponent<TData, TValue>({
   ) => {
     const fieldType = meta?.fieldType ?? "text";
     const Renderer = defaultCellRegistry[fieldType];
+    const draftRecord = draft as Record<string, unknown> | null;
     const value =
-      (draft as Record<string, unknown> | null)?.[columnId] ??
-      (row as Record<string, unknown>)[columnId];
+      draftRecord && columnId in draftRecord
+        ? draftRecord[columnId]
+        : (row as Record<string, unknown>)[columnId];
     const error = errors[columnId];
 
     if (!Renderer) {

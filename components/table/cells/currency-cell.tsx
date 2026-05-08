@@ -19,11 +19,11 @@ export function formatCurrency(
 }
 
 export function parseCurrency(raw: string): number | null {
-  if (raw == null) return null
+  if (raw == null || raw === '') return null
   const cleaned = raw.replace(/[^0-9.\-]/g, '')
-  if (cleaned === '' || cleaned === '-' || cleaned === '.') return null
+  if (cleaned === '' || cleaned === '-' || cleaned === '.') return NaN
   const n = Number(cleaned)
-  return Number.isNaN(n) ? null : n
+  return Number.isFinite(n) ? n : NaN
 }
 
 export function CurrencyCell({
@@ -64,7 +64,7 @@ export function CurrencyCell({
         }}
         onBlur={() => {
           const n = parseCurrency(text)
-          if (n != null) setText(String(n))
+          if (n != null && Number.isFinite(n)) setText(String(n))
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

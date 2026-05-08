@@ -104,8 +104,8 @@ export function ProductsToolbar({
 
       {hasActive && (
         <Button variant="ghost" size="sm" className="h-8" onClick={handleClear}>
-          <X className="mr-1 h-4 w-4" />
-          Clear
+          <X className="mr-1 h-4 w-4 text-red-500" />
+          <span className="text-red-500">Clear</span>
         </Button>
       )}
     </div>

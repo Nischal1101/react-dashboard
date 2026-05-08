@@ -7,7 +7,19 @@ import {
 import { toast } from "sonner";
 import { api } from "@/lib/axios-instance";
 import { keys } from "@/lib/query-keys";
-import type { TProduct, TProductsResponse, TProductListParams } from "@/@types";
+import {
+  formatZodIssues,
+  productUpdateSchema,
+} from "@/lib/schemas/product";
+import type {
+  TDeleteProductInput,
+  TJsonServerPage,
+  TProduct,
+  TProductFilterOptions,
+  TProductListParams,
+  TProductsResponse,
+  TUpdateProductInput,
+} from "@/@types";
 
 async function fetchProducts(
   queryParams: TProductListParams,
@@ -61,7 +73,13 @@ export function useFetchProductFilterOptions() {
 }
 
 async function updateProduct({ id, payload }: TUpdateProductInput) {
-  const response = await api.patch<TProduct>(`/products/${id}`, payload);
+  const parsed = productUpdateSchema.safeParse(payload);
+  if (!parsed.success) {
+    const message = formatZodIssues(parsed.error);
+    toast.error(message);
+    throw new Error(message);
+  }
+  const response = await api.patch<TProduct>(`/products/${id}`, parsed.data);
   return response.data;
 }
 

@@ -4,6 +4,7 @@ import { DataTableHeader } from "@/components/table/data-table-header";
 import { ColumnDef } from "@tanstack/react-table";
 
 import type { TProduct } from "@/@types";
+import { validateProductField } from "@/lib/schemas/product";
 
 export const columns: ColumnDef<TProduct>[] = [
   {
@@ -14,12 +15,8 @@ export const columns: ColumnDef<TProduct>[] = [
     meta: {
       fieldType: "text",
       required: true,
-      validate: (value: unknown) => {
-        if (typeof value !== "string" || value.trim() === "") return "Required";
-        if (value.trim().length < 2) return "Must be at least 2 characters";
-        return null;
-      },
-      normalize: (value: unknown) =>
+      validate: (value) => validateProductField("title", value),
+      normalize: (value) =>
         (typeof value === "string" ? value.trim() : value) as never,
     },
   },
@@ -31,6 +28,8 @@ export const columns: ColumnDef<TProduct>[] = [
     size: 160,
     meta: {
       fieldType: "text",
+      required: true,
+      validate: (value) => validateProductField("category", value),
     },
   },
   {
@@ -39,6 +38,7 @@ export const columns: ColumnDef<TProduct>[] = [
     size: 160,
     meta: {
       fieldType: "text",
+      validate: (value) => validateProductField("brand", value),
     },
   },
   {
@@ -50,11 +50,8 @@ export const columns: ColumnDef<TProduct>[] = [
       fieldType: "currency",
       currency: "USD",
       min: 0,
-      validate: (value: unknown) => {
-        if (value == null) return "Required";
-        if (typeof value === "number" && value < 0) return "Cannot be negative";
-        return null;
-      },
+      required: true,
+      validate: (value) => validateProductField("price", value),
     },
   },
   {
@@ -66,12 +63,7 @@ export const columns: ColumnDef<TProduct>[] = [
     size: 110,
     meta: {
       fieldType: "percentage",
-      validate: (value: unknown) => {
-        if (value == null) return null;
-        if (typeof value === "number" && (value < 0 || value > 100))
-          return "0-100 only";
-        return null;
-      },
+      validate: (value) => validateProductField("discountPercentage", value),
     },
   },
   {
@@ -84,6 +76,7 @@ export const columns: ColumnDef<TProduct>[] = [
       min: 0,
       max: 5,
       step: 0.01,
+      validate: (value) => validateProductField("rating", value),
     },
   },
   {
@@ -95,6 +88,7 @@ export const columns: ColumnDef<TProduct>[] = [
       fieldType: "number",
       min: 0,
       step: 1,
+      validate: (value) => validateProductField("stock", value),
     },
   },
 ];
