@@ -5,31 +5,13 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
-
 import { api } from "@/lib/axios-instance";
 import { keys } from "@/lib/query-keys";
-import type { Product, ProductsResponse } from "@/@types";
+import type { TProduct, TProductsResponse, TProductListParams } from "@/@types";
 
-interface ProductListParams {
-  limit: number;
-  skip: number;
-  category?: string;
-  brand?: string;
-}
-
-interface JsonServerPage<T> {
-  first: number;
-  prev: number | null;
-  next: number | null;
-  last: number;
-  pages: number;
-  items: number;
-  data: T[];
-}
-
-export async function fetchProducts(
-  queryParams: ProductListParams,
-): Promise<ProductsResponse> {
+async function fetchProducts(
+  queryParams: TProductListParams,
+): Promise<TProductsResponse> {
   const page = Math.floor(queryParams.skip / queryParams.limit) + 1;
   const params: Record<string, string | number> = {
     _page: page,
@@ -38,7 +20,7 @@ export async function fetchProducts(
   if (queryParams.category) params["category:eq"] = queryParams.category;
   if (queryParams.brand) params["brand:eq"] = queryParams.brand;
 
-  const response = await api.get<JsonServerPage<Product>>("/products", {
+  const response = await api.get<TJsonServerPage<TProduct>>("/products", {
     params,
   });
   return {
@@ -49,7 +31,7 @@ export async function fetchProducts(
   };
 }
 
-export function useFetchProducts(queryParams: ProductListParams) {
+export function useFetchProducts(queryParams: TProductListParams) {
   return useQuery({
     queryKey: keys.products.byFilter(queryParams),
     queryFn: () => fetchProducts(queryParams),
@@ -57,13 +39,8 @@ export function useFetchProducts(queryParams: ProductListParams) {
   });
 }
 
-export interface ProductFilterOptions {
-  categories: string[];
-  brands: string[];
-}
-
-export async function fetchProductFilterOptions(): Promise<ProductFilterOptions> {
-  const response = await api.get<Product[]>("/products");
+async function fetchProductFilterOptions(): Promise<TProductFilterOptions> {
+  const response = await api.get<TProduct[]>("/products");
   const categories = new Set<string>();
   const brands = new Set<string>();
   for (const product of response.data) {
@@ -83,13 +60,8 @@ export function useFetchProductFilterOptions() {
   });
 }
 
-interface UpdateProductInput {
-  id: number;
-  payload: Partial<Product>;
-}
-
-export async function updateProduct({ id, payload }: UpdateProductInput) {
-  const response = await api.patch<Product>(`/products/${id}`, payload);
+async function updateProduct({ id, payload }: TUpdateProductInput) {
+  const response = await api.patch<TProduct>(`/products/${id}`, payload);
   return response.data;
 }
 
@@ -104,12 +76,8 @@ export function useUpdateProduct() {
   });
 }
 
-interface DeleteProductInput {
-  id: number;
-}
-
-export async function deleteProduct({ id }: DeleteProductInput) {
-  const response = await api.delete<Product>(`/products/${id}`);
+async function deleteProduct({ id }: TDeleteProductInput) {
+  const response = await api.delete<TProduct>(`/products/${id}`);
   return response.data;
 }
 

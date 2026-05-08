@@ -1,4 +1,4 @@
-import { Product } from "@/@types";
+import type { TProduct } from "@/@types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,17 +10,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface DeleteDialogProps {
-  product: Product | null;
+type TDeleteDialogProps = {
+  product: TProduct | null;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (product: Product) => void;
-}
+  onConfirm: (product: TProduct) => void;
+};
 
 export default function DeleteDialog({
   product,
   onOpenChange,
   onConfirm,
-}: DeleteDialogProps) {
+}: TDeleteDialogProps) {
   return (
     <AlertDialog open={product !== null} onOpenChange={onOpenChange}>
       <AlertDialogContent>

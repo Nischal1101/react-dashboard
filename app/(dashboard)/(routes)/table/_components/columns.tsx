@@ -3,9 +3,9 @@
 import { DataTableHeader } from "@/components/table/data-table-header";
 import { ColumnDef } from "@tanstack/react-table";
 
-import type { Product } from "@/@types";
+import type { TProduct } from "@/@types";
 
-export const columns: ColumnDef<Product>[] = [
+export const columns: ColumnDef<TProduct>[] = [
   {
     id: "title",
     accessorKey: "title",

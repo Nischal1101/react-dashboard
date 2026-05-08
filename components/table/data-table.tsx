@@ -16,7 +16,7 @@ import {
 import { DatabaseZap } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type { EditableColumnMeta, EditingState } from "@/@types";
+import type { TEditableColumnMeta, TEditingState } from "@/@types";
 
 import {
   TableBody,
@@ -71,7 +71,7 @@ function DataTableComponent<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
-  const [editing, setEditing] = useState<EditingState>(null);
+  const [editing, setEditing] = useState<TEditingState>(null);
   const [draft, setDraft] = useState<Partial<TData> | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -169,7 +169,7 @@ function DataTableComponent<TData, TValue>({
       for (const col of editableColumns) {
         const colId = getColumnId(col);
         if (!colId) continue;
-        const meta = col.meta as EditableColumnMeta<TData> | undefined;
+        const meta = col.meta as TEditableColumnMeta<TData> | undefined;
         if (meta?.editable === false) continue;
         const raw = (draft as Record<string, unknown>)[colId];
         const normalized = meta?.normalize ? meta.normalize(raw as never) : raw;
@@ -219,7 +219,7 @@ function DataTableComponent<TData, TValue>({
       rowId: string,
       columnId: string,
       row: TData,
-      meta?: EditableColumnMeta<TData>,
+      meta?: TEditableColumnMeta<TData>,
     ) => {
       if (editMode === "none" || editMode === "row") return false;
       if (meta?.editable === false) return false;
@@ -233,7 +233,7 @@ function DataTableComponent<TData, TValue>({
   const renderEditor = (
     columnId: string,
     row: TData,
-    meta: EditableColumnMeta<TData> | undefined,
+    meta: TEditableColumnMeta<TData> | undefined,
     autoFocus: boolean,
     rowId: string,
   ) => {
@@ -252,7 +252,7 @@ function DataTableComponent<TData, TValue>({
       );
     }
 
-    const editorMeta = (meta ?? {}) as EditableColumnMeta<TData>;
+    const editorMeta = (meta ?? {}) as TEditableColumnMeta<TData>;
 
     return (
       <div className="relative w-full">
@@ -260,7 +260,7 @@ function DataTableComponent<TData, TValue>({
           value={value}
           rawValue={value}
           row={row}
-          meta={editorMeta as EditableColumnMeta<unknown, unknown>}
+          meta={editorMeta as TEditableColumnMeta<unknown, unknown>}
           error={error}
           autoFocus={autoFocus}
           onChange={(v) => handleFieldChange(columnId, v)}
@@ -381,7 +381,7 @@ function DataTableComponent<TData, TValue>({
                   {row.getVisibleCells().map((cell, cellIndex) => {
                     const isFirstColumn = cellIndex === 0;
                     const meta = cell.column.columnDef.meta as
-                      | EditableColumnMeta<TData>
+                      | TEditableColumnMeta<TData>
                       | undefined;
                     const columnId = cell.column.id;
                     const cellEditing = isCellEditing(rowId, columnId);
@@ -441,7 +441,7 @@ function DataTableComponent<TData, TValue>({
                               )
                             : formatViewValue(
                                 cell.getValue(),
-                                meta as EditableColumnMeta<unknown, unknown>,
+                                meta as TEditableColumnMeta<unknown, unknown>,
                               )}
                       </TableCell>
                     );

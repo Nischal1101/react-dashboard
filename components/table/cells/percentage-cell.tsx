@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Input } from '@/components/ui/input'
-import type { EditableCellRenderProps } from '@/@types'
+import type { TEditableCellRenderProps } from '@/@types'
 
 export function formatPercentage(
   value: number | null | undefined,
@@ -31,7 +31,7 @@ export function PercentageCell({
   onChange,
   onCommit,
   onCancel,
-}: EditableCellRenderProps<unknown, number | null>) {
+}: TEditableCellRenderProps<unknown, number | null>) {
   const ref = useRef<HTMLInputElement>(null)
   const [text, setText] = useState<string>(value == null ? '' : String(value))
 

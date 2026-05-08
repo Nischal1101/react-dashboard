@@ -5,7 +5,7 @@ import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 
 import { DataTable } from "@/components/table/data-table";
 import { DataTablePagination } from "@/components/table/data-table-pagination";
-import type { Product } from "@/@types";
+import type { TProduct } from "@/@types";
 
 import {
   useDeleteProduct,
@@ -35,7 +35,7 @@ export function EmployeesTable() {
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
 
-  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<TProduct | null>(null);
 
   const handleToolbarChange = useCallback(
     (next: { q?: string; category?: string; brand?: string }) => {
@@ -56,7 +56,7 @@ export function EmployeesTable() {
         onChange={handleToolbarChange}
       />
 
-      <DataTable<Product, unknown>
+      <DataTable<TProduct, unknown>
         isLoading={isLoading}
         isRefetching={isFetching && !isLoading}
         columns={columns}

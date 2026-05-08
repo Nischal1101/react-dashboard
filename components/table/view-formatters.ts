@@ -1,5 +1,5 @@
 import { formatNumber } from "@/lib/utils";
-import type { EditableColumnMeta, SelectOption } from "@/@types";
+import type { TEditableColumnMeta, TSelectOption } from "@/@types";
 
 import { formatCurrency } from "./cells/currency-cell";
 import { formatPercentage } from "./cells/percentage-cell";
@@ -7,7 +7,7 @@ import { formatPhone } from "./cells/phone-cell";
 
 export function formatViewValue(
   value: unknown,
-  meta?: EditableColumnMeta,
+  meta?: TEditableColumnMeta,
 ): string {
   if (value === null || value === undefined || value === "") return "—";
 
@@ -27,7 +27,7 @@ export function formatViewValue(
     case "phone":
       return formatPhone(String(value));
     case "select": {
-      const options: SelectOption[] = meta?.options ?? [];
+      const options: TSelectOption[] = meta?.options ?? [];
       return options.find((o) => o.value === value)?.label ?? String(value);
     }
     case "date":

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { Input } from "@/components/ui/input";
-import type { EditableCellRenderProps } from "@/@types";
+import type { TEditableCellRenderProps } from "@/@types";
 
 export function NumberInputCell({
   value,
@@ -13,7 +13,7 @@ export function NumberInputCell({
   onChange,
   onCommit,
   onCancel,
-}: EditableCellRenderProps<unknown, number | null>) {
+}: TEditableCellRenderProps<unknown, number | null>) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

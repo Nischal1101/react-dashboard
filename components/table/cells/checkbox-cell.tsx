@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
-import type { EditableCellRenderProps } from "@/@types";
+import type { TEditableCellRenderProps } from "@/@types";
 
 export function CheckboxCell({
   value,
@@ -12,7 +12,7 @@ export function CheckboxCell({
   onChange,
   onCommit,
   onCancel,
-}: EditableCellRenderProps<unknown, boolean>) {
+}: TEditableCellRenderProps<unknown, boolean>) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

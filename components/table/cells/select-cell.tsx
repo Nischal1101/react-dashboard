@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 
 import { cn } from '@/lib/utils'
-import type { EditableCellRenderProps } from '@/@types'
+import type { TEditableCellRenderProps } from '@/@types'
 
 export function SelectCell({
   value,
@@ -13,7 +13,7 @@ export function SelectCell({
   onChange,
   onCommit,
   onCancel,
-}: EditableCellRenderProps<unknown, string>) {
+}: TEditableCellRenderProps<unknown, string>) {
   const ref = useRef<HTMLSelectElement>(null)
   const options = meta.options ?? []
 

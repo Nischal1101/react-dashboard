@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 
 import { Input } from '@/components/ui/input'
-import type { EditableCellRenderProps } from '@/@types'
+import type { TEditableCellRenderProps } from '@/@types'
 
 export function formatPhone(raw: string): string {
   const digits = (raw ?? '').replace(/\D/g, '').slice(0, 10)
@@ -25,7 +25,7 @@ export function PhoneCell({
   onChange,
   onCommit,
   onCancel,
-}: EditableCellRenderProps<unknown, string>) {
+}: TEditableCellRenderProps<unknown, string>) {
   const ref = useRef<HTMLInputElement>(null)
 
   useEffect(() => {

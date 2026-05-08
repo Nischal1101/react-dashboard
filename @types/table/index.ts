@@ -1,7 +1,7 @@
 import type { RowData } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
-export type BuiltInFieldType =
+export type TEditableFieldType =
   | "text"
   | "number"
   | "select"
@@ -9,19 +9,18 @@ export type BuiltInFieldType =
   | "date"
   | "phone"
   | "currency"
-  | "percentage";
+  | "percentage"
+  | (string & {});
 
-export type EditableFieldType = BuiltInFieldType | (string & {});
-
-export interface SelectOption {
+export type TSelectOption = {
   label: string;
   value: string;
-}
+};
 
-export interface EditableColumnMeta<TData = unknown, TValue = unknown> {
-  fieldType?: EditableFieldType;
+export type TEditableColumnMeta<TData = unknown, TValue = unknown> = {
+  fieldType?: TEditableFieldType;
   editable?: boolean;
-  options?: SelectOption[];
+  options?: TSelectOption[];
   placeholder?: string;
   validate?: (value: TValue, row: TData) => string | null;
   normalize?: (value: TValue) => TValue;
@@ -31,40 +30,40 @@ export interface EditableColumnMeta<TData = unknown, TValue = unknown> {
   max?: number;
   step?: number;
   required?: boolean;
-}
+};
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface ColumnMeta<
     TData extends RowData,
     TValue,
-  > extends EditableColumnMeta<TData, TValue> {}
+  > extends TEditableColumnMeta<TData, TValue> {}
 }
 
-export type EditingState =
+export type TEditingState =
   | { kind: "row"; rowId: string; focusColumnId?: string }
   | { kind: "cell"; rowId: string; columnId: string }
   | null;
 
-export interface EditableCellRenderProps<TData = unknown, TValue = unknown> {
+export type TEditableCellRenderProps<TData = unknown, TValue = unknown> = {
   value: TValue;
   rawValue: TValue;
   row: TData;
-  meta: EditableColumnMeta<TData, TValue>;
+  meta: TEditableColumnMeta<TData, TValue>;
   error?: string;
   autoFocus?: boolean;
   onChange: (value: TValue) => void;
   onCommit: () => void;
   onCancel: () => void;
-}
+};
 
-export type EditableCellRenderer = (
-  props: EditableCellRenderProps<unknown, unknown>,
+export type TEditableCellRenderer = (
+  props: TEditableCellRenderProps<unknown, unknown>,
 ) => ReactNode;
 
-export type CellRegistry = Record<string, EditableCellRenderer>;
+export type TCellRegistry = Record<string, TEditableCellRenderer>;
 
-export interface Product {
+export type TProduct = {
   id: number;
   title: string;
   description: string;
@@ -76,11 +75,37 @@ export interface Product {
   brand?: string;
   sku?: string;
   thumbnail?: string;
-}
+};
 
-export interface ProductsResponse {
-  products: Product[];
+export type TProductsResponse = {
+  products: TProduct[];
   total: number;
   skip: number;
   limit: number;
-}
+};
+
+export type TProductListParams = {
+  limit: number;
+  skip: number;
+  category?: string;
+  brand?: string;
+};
+
+export type TUpdateProductInput = {
+  id: number;
+  payload: Partial<TProduct>;
+};
+
+export type TDeleteProductInput = {
+  id: number;
+};
+
+export type TProductFilterOptions = {
+  categories: string[];
+  brands: string[];
+};
+
+export type TJsonServerPage<T> = {
+  items: number;
+  data: T[];
+};
