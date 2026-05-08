@@ -15,7 +15,7 @@ import {
 } from "@tanstack/react-table";
 import { DatabaseZap } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn, formatViewValue } from "@/lib/utils";
 import type { TEditableColumnMeta, TEditingState } from "@/@types";
 
 import {
@@ -29,7 +29,6 @@ import {
 import { defaultCellRegistry } from "./cells";
 import DataTableSkeleton from "./data-table-skeleton";
 import { DataTableRowActions } from "./data-table-row-actions";
-import { formatViewValue } from "./view-formatters";
 
 const ACTIONS_COLUMN_WIDTH = 96;
 const CELL_PADDING = 16;

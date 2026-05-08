@@ -3,28 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Input } from '@/components/ui/input'
+import { parseCurrency } from '@/lib/utils'
 import type { TEditableCellRenderProps } from '@/@types'
-
-export function formatCurrency(
-  value: number | null | undefined,
-  currency = 'USD',
-  locale = 'en-US',
-): string {
-  if (value == null || Number.isNaN(value)) return ''
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 2,
-  }).format(value)
-}
-
-export function parseCurrency(raw: string): number | null {
-  if (raw == null || raw === '') return null
-  const cleaned = raw.replace(/[^0-9.\-]/g, '')
-  if (cleaned === '' || cleaned === '-' || cleaned === '.') return NaN
-  const n = Number(cleaned)
-  return Number.isFinite(n) ? n : NaN
-}
 
 export function CurrencyCell({
   value,

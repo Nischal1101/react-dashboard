@@ -3,25 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Input } from '@/components/ui/input'
+import { parsePercentage } from '@/lib/utils'
 import type { TEditableCellRenderProps } from '@/@types'
-
-export function formatPercentage(
-  value: number | null | undefined,
-  locale = 'en-US',
-): string {
-  if (value == null || Number.isNaN(value)) return ''
-  return `${new Intl.NumberFormat(locale, {
-    maximumFractionDigits: 2,
-  }).format(value)}%`
-}
-
-export function parsePercentage(raw: string): number | null {
-  if (raw == null || raw === '') return null
-  const cleaned = raw.replace(/[^0-9.\-]/g, '')
-  if (cleaned === '' || cleaned === '-' || cleaned === '.') return NaN
-  const n = Number(cleaned)
-  return Number.isFinite(n) ? n : NaN
-}
 
 export function PercentageCell({
   value,
