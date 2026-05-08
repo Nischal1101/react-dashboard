@@ -15,7 +15,7 @@ import {
 } from "@tanstack/react-table";
 import { DatabaseZap } from "lucide-react";
 
-import { cn, formatViewValue } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { TEditableColumnMeta } from "@/@types";
 
 import {
@@ -307,18 +307,10 @@ function DataTableComponent<TData, TValue>({
                               editorAutoFocus,
                               rowId,
                             )
-                          : cell.column.columnDef.cell
-                            ? flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext() as CellContext<
-                                  TData,
-                                  unknown
-                                >,
-                              )
-                            : formatViewValue(
-                                cell.getValue(),
-                                meta as TEditableColumnMeta<unknown, unknown>,
-                              )}
+                          : flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext() as CellContext<TData, unknown>,
+                            )}
                       </TableCell>
                     );
                   })}
@@ -355,7 +347,7 @@ function DataTableComponent<TData, TValue>({
               );
             })}
           </TableBody>
-        </table> 
+        </table>
 
         {!isLoading && !rows.length && (
           <div className="flex h-[300px] items-center justify-center">

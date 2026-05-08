@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import type { TProduct } from "@/@types";
 import { validateProductField } from "@/lib/schemas/product";
+import { formatCurrency, formatNumber, formatPercentage } from "@/lib/utils";
 
 export const columns: ColumnDef<TProduct>[] = [
   {
@@ -12,8 +13,10 @@ export const columns: ColumnDef<TProduct>[] = [
     accessorKey: "title",
     header: ({ column }) => <DataTableHeader title="Title" column={column} />,
     size: 240,
+    cell: ({ getValue }) => (getValue() as string) || "—",
     meta: {
       fieldType: "text",
+      editable: false,
       required: true,
       validate: (value) => validateProductField("title", value),
       normalize: (value) =>
@@ -26,6 +29,7 @@ export const columns: ColumnDef<TProduct>[] = [
       <DataTableHeader title="Category" column={column} />
     ),
     size: 160,
+    cell: ({ getValue }) => (getValue() as string) || "—",
     meta: {
       fieldType: "text",
       required: true,
@@ -36,6 +40,7 @@ export const columns: ColumnDef<TProduct>[] = [
     accessorKey: "brand",
     header: ({ column }) => <DataTableHeader title="Brand" column={column} />,
     size: 160,
+    cell: ({ getValue }) => (getValue() as string) || "—",
     meta: {
       fieldType: "text",
       validate: (value) => validateProductField("brand", value),
@@ -46,6 +51,7 @@ export const columns: ColumnDef<TProduct>[] = [
     header: ({ column }) => <DataTableHeader title="Price" column={column} />,
     enableSorting: true,
     size: 110,
+    cell: ({ getValue }) => formatCurrency(getValue() as number, "USD") || "—",
     meta: {
       fieldType: "currency",
       currency: "USD",
@@ -61,6 +67,7 @@ export const columns: ColumnDef<TProduct>[] = [
     ),
     enableSorting: true,
     size: 110,
+    cell: ({ getValue }) => formatPercentage(getValue() as number) || "—",
     meta: {
       fieldType: "percentage",
       validate: (value) => validateProductField("discountPercentage", value),
@@ -71,6 +78,7 @@ export const columns: ColumnDef<TProduct>[] = [
     header: ({ column }) => <DataTableHeader title="Rating" column={column} />,
     enableSorting: true,
     size: 100,
+    cell: ({ getValue }) => formatNumber(getValue() as number) || "—",
     meta: {
       fieldType: "number",
       min: 0,
@@ -84,6 +92,7 @@ export const columns: ColumnDef<TProduct>[] = [
     header: ({ column }) => <DataTableHeader title="Stock" column={column} />,
     enableSorting: true,
     size: 100,
+    cell: ({ getValue }) => formatNumber(getValue() as number) || "—",
     meta: {
       fieldType: "number",
       min: 0,
