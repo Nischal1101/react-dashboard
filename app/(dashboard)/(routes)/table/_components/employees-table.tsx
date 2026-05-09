@@ -16,18 +16,19 @@ import { columns } from "./columns";
 import DeleteDialog from "./product-delete-dialog";
 import { ProductsToolbar } from "./products-toolbar";
 
+const PAGE_SIZE = 10;
+
 export function EmployeesTable() {
-  const [{ page, pageSize, q, category, brand }, setQuery] = useQueryStates({
+  const [{ page, q, category, brand }, setQuery] = useQueryStates({
     page: parseAsInteger.withDefault(1),
-    pageSize: parseAsInteger.withDefault(10),
     q: parseAsString.withDefault(""),
     category: parseAsString.withDefault(""),
     brand: parseAsString.withDefault(""),
   });
 
   const { data, isLoading, isFetching } = useFetchProducts({
-    limit: pageSize,
-    skip: (page - 1) * pageSize,
+    limit: PAGE_SIZE,
+    skip: (page - 1) * PAGE_SIZE,
     category: category || undefined,
     brand: brand || undefined,
   });
@@ -45,7 +46,7 @@ export function EmployeesTable() {
   );
 
   const products = data?.products ?? [];
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-2">
@@ -86,10 +87,8 @@ export function EmployeesTable() {
 
       <DataTablePagination
         page={page}
-        pageSize={pageSize}
         totalPages={totalPages}
         onPageChange={(next) => setQuery({ page: next })}
-        onPageSizeChange={(next) => setQuery({ pageSize: next, page: 1 })}
       />
     </div>
   );
