@@ -24,11 +24,11 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:3001/
 
 ## Architecture decisions
 
-- \*\*Table Component sits on client side to make it more interactive. Data is fetched in client using tanstack query for all the server side state management and caching. (previously used dummyjson api so was useful, later swapped with local db server)
+- **Table Component sits on client side** to make it more interactive. Data is fetched in client using tanstack query for all the server side state management and caching. (previously used dummyjson api so was useful, later swapped with local db server)
 - **Route-specific components live in `_components/`.** App-wide components live in `components/`. Keeps the shared folder lean.
 - **One centralized reusable `<DataTable>` component with different components (seperation of concern) .** All tables in the app go through `components/table/data-table.tsx`.
-- \*\*Centralized configuration for dashboard navigation to extend dashboard easily.
-- Custom hooks are used to extract stateful logic from JSX. Components stay focused on rendering.
+- **Centralized configuration** for dashboard navigation to extend dashboard easily.
+- **Custom hooks are used** to extract stateful logic from JSX. Components stay focused on rendering.
 - **State used are .** URL via nuqs (`page`, `q`, `category`, `brand`) survives refresh and shared links. React Query owns server data with `placeholderData: keepPreviousData` so paging never flashes empty. Local `useState` for sorting, column sizing, edit state .
 - **Types centralised under `@types/`.** One import alias `@/@types` for `TProduct`, table meta, editing state. Renaming a field is one edit.
 - **React Compiler is on.** Removes most need for manual `useMemo` / `useCallback`.
