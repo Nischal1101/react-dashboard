@@ -1,20 +1,20 @@
 import { TNavigationItem } from "@/@types";
-import { Home } from "lucide-react";
+import { Calculator, Home, Table } from "lucide-react";
 
 export const navigations: TNavigationItem[] = [
   {
     name: "table",
-    icon: Home,
-    href: "/target",
+    icon: Table,
+    href: "/table",
   },
   {
-    name: "table2",
+    name: "home",
     icon: Home,
-    href: "/target",
+    href: "/home",
   },
   {
-    name: "table3",
-    icon: Home,
-    href: "/target",
+    name: "accounts",
+    icon: Calculator,
+    href: "/accounts",
   },
 ];
