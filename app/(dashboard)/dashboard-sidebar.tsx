@@ -1,5 +1,8 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { TNavigationItem, TSubNavigationItem } from "@/@types";
 import { navigations } from "./config/dashboard-navigation";
@@ -20,12 +23,14 @@ import {
 import { Frame } from "lucide-react";
 
 function SubNavigation({ items }: { items: TSubNavigationItem[] }) {
+  const pathname = usePathname();
+
   return (
     <SidebarMenuSub>
       {items.map((item) => (
         <SidebarMenuSubItem key={item.name}>
           {item.href ? (
-            <SidebarMenuSubButton asChild>
+            <SidebarMenuSubButton asChild isActive={pathname === item.href}>
               <Link href={item.href}>{item.name}</Link>
             </SidebarMenuSubButton>
           ) : (
@@ -41,6 +46,7 @@ function SubNavigation({ items }: { items: TSubNavigationItem[] }) {
 }
 
 function NavigationItem({ item }: { item: TNavigationItem }) {
+  const pathname = usePathname();
   const Icon = item.icon;
 
   if (item.subItems) {
@@ -57,7 +63,7 @@ function NavigationItem({ item }: { item: TNavigationItem }) {
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild>
+      <SidebarMenuButton asChild isActive={pathname === item.href}>
         <Link href={item.href} target={item.target}>
           <Icon />
           <span>{item.name}</span>
