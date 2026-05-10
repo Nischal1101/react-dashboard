@@ -39,7 +39,6 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:3001/
 - **Search is client side only**. Not good approach for huge data.
 - **Pagination is prev/next, page size fixed at 10.** No jump-to-page, no rows-per-page selector. Page 47 = 46 clicks.
 - **Column widths reset on navigation.** `columnSizing` is component-local — not persisted to URL or localStorage.
-- **One row or cell edited at a time.** `useTableEditing` tracks one `editing` slot. Clicking elsewhere mid-edit silently discards the draft.
 - **Click-outside cancels, doesn't save.** Avoids persisting half-typed values on misclick. Save = Enter or button.
 - **json-server isn't a real API.** Different error shapes, no auth, no transactions. The bare axios instance would grow interceptors against a real backend.
 
